@@ -1,23 +1,29 @@
 package com.example.loganalyser.cli;
-import java.util.Scanner;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
+import java.util.Scanner;
 
 public class CommandAnalysis {
     
     public void handleAnalysis(Scanner cliScanner) {
         System.out.println("Please enter the path to the log file you want to analyse:");
         String logFilePath = cliScanner.nextLine();
-        if (logFilePath.startsWith("\"") && logFilePath.endsWith("\"")) {
-            logFilePath = logFilePath.substring(1, logFilePath.length() - 1);
-        }
+        
         if (!verifyLogFilePath(logFilePath)) {
             return;
         }
     }
 
     private boolean verifyLogFilePath(String logFilePath) {
+
+        if (logFilePath.startsWith("\"") ^ logFilePath.endsWith("\"")) {
+            System.out.println("Error: Mismatched quotes in the log file path.");
+            return false;
+        }
+        else if (logFilePath.startsWith("\"") && logFilePath.endsWith("\"")) {
+            logFilePath = logFilePath.substring(1, logFilePath.length() - 1);
+        }
         Path path = Paths.get(logFilePath);
         if(logFilePath.isEmpty()) {
             System.out.println("Error: No log file path provided.");
