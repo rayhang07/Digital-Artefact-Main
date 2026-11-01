@@ -13,6 +13,8 @@ public class CommandHandler {
     // ANSI escape code to reset the color back to default. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
     private static final String RESET = "\u001B[0m";
 
+    private final CommandAnalysis commandAnalysis = new CommandAnalysis();
+
     // Method to run the command line interface, this will be called from the main method in the Main class (as the entry point of the application). This is justified as the main method is the entry point of the application and is responsible for initialising and starting the command line interface. By calling the run method from the main method, we ensure that the command line interface is started when the application is executed to actually gain user input and process commands. It is also a good practice to separate the command line interface logic from the main method, as it improves code organization and maintainability.
     public void runCli() {
 
@@ -32,27 +34,27 @@ public class CommandHandler {
             command = cliScanner.nextLine().toLowerCase();
 
             // Handle the user command by calling the handleCommand method, which processes the command and performs the corresponding action based on corresponding case in the switch statement. This is justified as it allows for a modular and organized approach to command handling, making it easier to add or modify commands in the future.
-            handleCommand(command);
-        } while (command == null || !command.equals("exit"));
+            handleCommand(command, cliScanner);
+        } while (command == null || !command.equals("loganalyser --exit"));
         
 
         
         // Close the scanner to release resources and prevent resource leaks. This is justified as it is a good practice to close resources when they are no longer needed, especially for input streams like Scanner, to free up system resources and avoid potential memory leaks.
-        cliScanner.close();
+       
 
     }
 
     // Method to handle the user command by using a switch statement to determine the appropriate action based on the command entered. A switch statement is used over if else statements as commands are direct and correspond directly to cases, any unfamiliar cases can be handled via the default block. This is used to handle different commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as each command can be handled in its own case block.
-    private void handleCommand(String command) {
+    private void handleCommand(String command, Scanner cliScanner) {
         switch (command) {
             case "loganalyser --help":
-                //displayHelp();
+                displayHelp();
                 break;
-            case "exit":
-                System.out.println(GREEN + "Exiting the application..." + RESET);
+            case "loganalyser --exit":
+                System.out.println(GREEN + "Exiting..." + RESET);
                 break;
             case "loganalyser --analyse":
-                //handleAnalysis();
+                commandAnalysis.handleAnalysis(cliScanner);
                 break;
             case "loganalyser --report":
                 //handleReport();
@@ -61,7 +63,7 @@ public class CommandHandler {
                 //handleConfig();
                 break;
             case "loganalyser --version":
-                //displayVersion();
+                displayVersion();
                 break; 
             case "loganalyser --alerts":
                 //handleAlerts();
@@ -74,6 +76,7 @@ public class CommandHandler {
         }
     }
     private void displayWelcomeBanner() {
+    // Display a welcome banner with the application name and description, using ANSI escape codes for color formatting. This is justified as it provides a visually appealing introduction to the application, enhancing the user experience and making it clear what the application does. The use of color formatting helps to draw attention to important information and improve readability.
     System.out.println(CYAN + """
         ==============================
           SECURITY LOG ANALYSER
@@ -82,5 +85,19 @@ public class CommandHandler {
         """ + RESET);
     System.out.println( GREEN + "Welcome to the Log Analyser Application! \n" + "Type loganalyser --help to see all commands available \n" + "Type loganalyser exit to exit the application" + RESET);
 }   
-}   
+    private void displayHelp() {
+    System.out.println("Available commands:");
+    System.out.println("loganalyser --help    - Display available commands");
+    System.out.println("loganalyser --exit    - Exit the application");
+    System.out.println("loganalyser --analyse - Analyse a log file");
+    System.out.println("loganalyser --report  - Generate an analysis report");
+    System.out.println("loganalyser --config  - View or change configuration");
+    System.out.println("loganalyser --version - Display application version");
+    System.out.println("loganalyser --alerts  - Display detected alerts");
+    System.out.println("loganalyser --summary - Display analysis summary");
+}
+    private void displayVersion() {
+    System.out.println("Log Analyser Application Version: 1.0.0");
 
+}   
+}
