@@ -8,6 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.time.LocalTime;
+import java.time.MonthDay;
+import java.time.format.DateTimeFormatter;
 
 import com.example.loganalyser.model.EventType;
 import com.example.loganalyser.model.LogEntry;
@@ -61,7 +65,7 @@ public class LogParser {
         if (logEntry.contains("Accepted")) {
             return EventType.SSH_LOGIN_SUCCESS;
         } 
-        else if (logEntry.contains("Failed")) {
+        else if (logEntry.contains("Failed") || logEntry.contains("Invalid user")) {
             return EventType.SSH_LOGIN_FAILURE;
         } 
         else {
@@ -70,8 +74,45 @@ public class LogParser {
     }
 
     private String extractSourceIp(String logEntry) {
+       int fromPosition = logEntry.indexOf("from");
+       int portPosition = logEntry.indexOf("port");
+       if (fromPosition == -1 || portPosition == -1) {
+           throw new IllegalArgumentException("Could not locate source IP");
+       }
+       else {
+        
+           String sourceIp = logEntry.substring(fromPosition + 5, portPosition - 1);
+           if (sourceIp.isBlank()) {
+               throw new IllegalArgumentException("Could not locate source IP");
+           }
+           return sourceIp;
+       }
        
-       return logEntry;
+    }
+
+    private MonthDay extractDate(String logEntry) {
+       String timestamp = logEntry.substring(0, 15);
+         if (timestamp.isBlank()) {
+              throw new IllegalArgumentException("Could not locate timestamp");
+         }
+
+        String month = timestamp.substring(0, 3);
+        String day = timestamp.substring(4, 6);
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM-dd", Locale.ENGLISH);
+        MonthDay logDate = MonthDay.parse(month + "-" + day, DateTimeFormatter.ofPattern("MMM-dd", Locale.ENGLISH));
+        return logDate;
+
+    }
+
+    private LocalTime extractTime(String logEntry) {
+        String timestamp = logEntry.substring(0, 15);
+        if (timestamp.isBlank()) {
+            throw new IllegalArgumentException("Could not locate timestamp");
+        }
+
+        String time = timestamp.substring(7, 15);
+        LocalTime logTime = LocalTime.parse(time);
+        return logTime;
     }
 
     private String extractUsername(String logEntry) {
@@ -81,8 +122,7 @@ public class LogParser {
         int fromPosition = logEntry.indexOf("from");
         if (fromPosition == -1) {
             throw new IllegalArgumentException("Could not locate username");
-        }
-        else {
+        } 
         int usernameStart = logEntry.lastIndexOf(" ", fromPosition - 1);
         if (usernameStart == -1) {
             throw new IllegalArgumentException("Could not locate username");
@@ -93,6 +133,11 @@ public class LogParser {
         }
         return username;
         }
-    }
-}
 
+    private String extractEventDetails(String logEntry) {
+        String details = logEntry.substring(16);
+
+        return details;
+    }
+
+}
