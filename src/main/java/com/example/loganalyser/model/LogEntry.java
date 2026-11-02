@@ -1,7 +1,8 @@
 package com.example.loganalyser.model;
 
-// Import the java.time.LocalDateTime class to represent the timestamp of the log entry. This is justified as it allows for accurate representation of date and time information, which is needed to accurately log events in the system. A String was not chosen as it would be less accurate and less extensible if more date and time formats were to be added.
-import java.time.LocalDateTime;
+// Import the java.time.MonthDay class to represent the timestamp of the log entry. This is justified as it allows for accurate representation of date and time information, which is needed to accurately log events in the system. A String was not chosen as it would be less accurate and less extensible if more date and time formats were to be added.
+import java.time.MonthDay;
+import java.time.LocalTime;
 
 public class LogEntry {
 
@@ -9,15 +10,16 @@ public class LogEntry {
     private final EventType eventType;
     private final String sourceIp;
     private final String username;
-    private final LocalDateTime timestamp;
+    private final MonthDay date;
+    private final LocalTime time;
     private final String eventDetails;
 
     // Constructor to create a new LogEntry object with the specified event type, source IP, username, timestamp, and event details. This is justified as it allows for the creation of log entry objects with all the necessary information, which is needed to accurately log events in the system. An empty constructor could not be justified as it would allow for the creation of log entry objects without any information leading to invalid log entries being created.
-    public LogEntry(EventType eventType, String sourceIp, String username, LocalDateTime timestamp, String eventDetails) {
+    public LogEntry(EventType eventType, String sourceIp, String username, MonthDay date, LocalTime time, String eventDetails) {
 
         // Validate the input parameters to ensure that they are not null or blank, and throw an IllegalArgumentException if they are. 
-         if (timestamp == null) {
-            throw new IllegalArgumentException("Timestamp cannot be null");
+         if (date == null || time == null) {
+            throw new IllegalArgumentException("Date and time cannot be null");
         }
 
         // Validate the input parameters to ensure that they are not null or blank, and throw an IllegalArgumentException if they are.
@@ -34,7 +36,8 @@ public class LogEntry {
         this.eventType = eventType;
         this.sourceIp = sourceIp;
         this.username = username;
-        this.timestamp = timestamp;
+        this.date = date;
+        this.time = time;
         this.eventDetails = eventDetails;
         
     }
@@ -53,8 +56,12 @@ public class LogEntry {
         return username;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public MonthDay getDate() {
+        return date;
+    }
+
+    public LocalTime getTime() {
+        return time;
     }
 
     public String getEventDetails() {
