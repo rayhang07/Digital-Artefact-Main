@@ -6,12 +6,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.time.LocalTime;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import com.example.loganalyser.model.EventType;
 import com.example.loganalyser.model.LogEntry;
@@ -29,6 +29,7 @@ public class LogParser {
             logEntry.contains("Failed publickey") ||
             logEntry.contains("Accepted publickey") ||
             logEntry.contains("Failed keyboard-interactive") ||
+            logEntry.contains("Invalid user") ||
             logEntry.contains("Accepted keyboard-interactive"))) {
             return true;
         }
@@ -134,10 +135,71 @@ public class LogParser {
         return username;
         }
 
-    private String extractEventDetails(String logEntry) {
-        String details = logEntry.substring(16);
+    private String extractAuthenticationMethod(String logEntry) {
+        if (logEntry == null || logEntry.isBlank()) {
+            throw new IllegalArgumentException("Log entry cannot be null or blank");
+        }
+        int failedPosition = logEntry.indexOf("Failed");
+        int acceptedPosition = logEntry.indexOf("Accepted");
+        int forPosition = logEntry.indexOf("for");
+        String authenticationMethod = "";
+        if (failedPosition == -1 && acceptedPosition == -1) {
+            throw new IllegalArgumentException("Log entry does not contain a recognised authentication result");
+        }
+            
+        if (logEntry.contains("Failed")) {
+            authenticationMethod = logEntry.substring(failedPosition+7, forPosition-1);
+        }
 
-        return details;
+        else if (logEntry.contains("Accepted")) {
+            authenticationMethod = logEntry.substring(acceptedPosition+9, forPosition-1);
+        }
+        if (authenticationMethod.isBlank()) {
+            throw new IllegalArgumentException("Authentication method cannot be blank");
+        }
+
+        return authenticationMethod;
     }
+
+    private String extractSourcePort(String logEntry) {
+        int portPosition = logEntry.indexOf("port");
+        String sourcePort = "";
+
+        int portStart = portPosition+5;
+        int portEnd = logEntry.indexOf(" ", portPosition+5);
+        if (portStart == -1 || portEnd == -1) {
+            throw new IllegalArgumentException("Could not extract source port");
+        }
+        if (portStart == portEnd) {
+            throw new IllegalArgumentException("Could not extract source port");
+        }
+
+        sourcePort = logEntry.substring(portStart, portEnd);
+
+        return sourcePort;
+    }
+
+    private String extractSshProtocol(String logEntry) {
+        int finalSpace = logEntry.lastIndexOf(" ");
+        if (finalSpace == -1) {
+            throw new IllegalArgumentException("Could not extract SSH protocol");
+        }
+        String sshProtocol = logEntry.substring(finalSpace +1);
+        if (sshProtocol.isBlank()) {
+            throw new IllegalArgumentException("Could not extract SSH protocol");
+        }
+        return sshProtocol;
+    }
+
+    private String eventDetails(String logEntry) {
+        String authenticationMethod = extractAuthenticationMethod(logEntry);
+        String sourcePort = extractSourcePort(logEntry);
+        String sshProtocol = extractSshProtocol(logEntry);
+        String eventDetails = ("Authentication method: " +authenticationMethod + ", Source port: " +sourcePort + ", SSH protocol: " +sshProtocol);
+
+        return eventDetails;
+    }
+
+
 
 }
