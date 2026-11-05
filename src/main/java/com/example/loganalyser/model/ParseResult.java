@@ -30,16 +30,20 @@ public class ParseResult {
         this.unrecognisedEntries = unrecognisedEntries;
     }
 
-    // Getter methods to retrieve values of the fields set.
+    // Getter methods to retrieve log entries
     // Log entries are returned as a new ArrayList to ensure that the internal list is not affected by external modifications, which is needed to maintain the integrity of the parse result data.
     public List<LogEntry> getLogEntries() {
         return new ArrayList<>(logEntries);
     }
 
+    // Getter methods to retrieve malformed entries
+    // Malformed entries are returned as a new ArrayList to ensure that the internal list is not affected by external modifications, which is needed to maintain the integrity of the parse result data.
     public List<String> getMalformedEntries() {
         return new ArrayList<> (malformedEntries);
     }
 
+    // Getter methods to retrieve unrecognised entries
+    // Unrecognised entries are returned as a new ArrayList to ensure that the internal list is not affected by external modifications, which is needed to maintain the integrity of the parse result data.
     public List<String> getUnrecognisedEntries() {
         return new ArrayList<>(unrecognisedEntries);
     }

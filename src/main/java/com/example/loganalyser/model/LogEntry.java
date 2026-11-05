@@ -1,8 +1,8 @@
 package com.example.loganalyser.model;
 
 // Import the java.time.MonthDay class to represent the timestamp of the log entry. This is justified as it allows for accurate representation of date and time information, which is needed to accurately log events in the system. A String was not chosen as it would be less accurate and less extensible if more date and time formats were to be added.
-import java.time.MonthDay;
 import java.time.LocalTime;
+import java.time.MonthDay;
 
 public class LogEntry {
 
@@ -42,28 +42,32 @@ public class LogEntry {
         
     }
 
-    // Getter methods to retrieve values of the fields set
+    // Getter methods to retrieve event type
     public EventType getEventType() {
         return eventType;
     }
 
-    
+    // Getter methods to retrieve sourceip
     public String getSourceIp() {
         return sourceIp;
     }
 
+    // Getter methods to retrieve username
     public String getUsername() {
         return username;
     }
 
+    // Getter methods to retrieve date
     public MonthDay getDate() {
         return date;
     }
 
+    // Getter methods to retrieve time
     public LocalTime getTime() {
         return time;
     }
 
+    // Getter methods to retrieve event details
     public String getEventDetails() {
         return eventDetails;
     }
