@@ -13,7 +13,7 @@ public class CommandHandler {
     // ANSI escape code to reset the color back to default. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
     private static final String RESET = "\u001B[0m";
 
-    private CommandAnalysis commandAnalysis = new CommandAnalysis();
+    private final CommandAnalysis commandAnalysis = new CommandAnalysis();
 
     // Method to run the command line interface, this will be called from the main method in the Main class (as the entry point of the application). This is justified as the main method is the entry point of the application and is responsible for initialising and starting the command line interface. By calling the run method from the main method, we ensure that the command line interface is started when the application is executed to actually gain user input and process commands. It is also a good practice to separate the command line interface logic from the main method, as it improves code organization and maintainability.
     public void runCli() {
@@ -31,7 +31,7 @@ public class CommandHandler {
             System.out.print(GREEN + "loganalyser> " + RESET);
 
             // Read the user input from the command line, convert it to lowercase to facilitate command handling even if the user enters it in different cases, and store it in the command variable.
-            command = cliScanner.nextLine().toLowerCase();
+            command = cliScanner.nextLine().trim().toLowerCase();
 
             // Handle the user command by calling the handleCommand method, which processes the command and performs the corresponding action based on corresponding case in the switch statement. This is justified as it allows for a modular and organized approach to command handling, making it easier to add or modify commands in the future.
             handleCommand(command, cliScanner);
@@ -83,7 +83,7 @@ public class CommandHandler {
         ==============================
         SSH Authentication Analysis
         """ + RESET);
-    System.out.println( GREEN + "Welcome to the Log Analyser Application! \n" + "Type loganalyser --help to see all commands available \n" + "Type loganalyser exit to exit the application" + RESET);
+    System.out.println( GREEN + "Welcome to the Log Analyser Application! \n" + "Type loganalyser --help to see all commands available \n" + "Type loganalyser --exit to exit the application" + RESET);
 }   
     private void displayHelp() {
     System.out.println("Available commands:");
@@ -97,7 +97,7 @@ public class CommandHandler {
     System.out.println("loganalyser --summary - Display analysis summary");
 }
     private void displayVersion() {
-    System.out.println("Log Analyser Application Version: 1.0.0");
+    System.out.println("Log Analyser Version: 1.0.0");
 
 }   
 }
