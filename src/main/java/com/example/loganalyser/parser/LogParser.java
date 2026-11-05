@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.time.LocalTime;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -36,11 +37,13 @@ public class LogParser {
         return false;   
     }
 
+   
+
     public ParseResult parseLogFile(Path logFilePath) throws IOException {
         
         List<LogEntry> logEntries = new ArrayList<>();
-        int malformedEntriesCount = 0;
-        int unrecognisedEntriesCount = 0;
+        List<String> malformedEntries = new ArrayList<>();
+        List<String> unrecognisedEntries = new ArrayList<>();
 
         try (BufferedReader reader = Files.newBufferedReader(logFilePath)) {
             String line;
@@ -49,16 +52,27 @@ public class LogParser {
                     continue; // Skip empty lines
                 }
                 if (!isSshLogEntry(line)) {
-                    unrecognisedEntriesCount++;
+                    unrecognisedEntries.add(line);
                     continue; // Skip unrecognised entries
                 }
+        try {
+            LogEntry logEntry = new LogEntry(determineEventType(line), extractSourceIp(line), extractUsername(line), extractDate(line), extractTime(line), eventDetails(line));
+            logEntries.add(logEntry);
+        }
 
+        catch (IllegalArgumentException | DateTimeParseException e) {
+            malformedEntries.add(line);
+            continue;
+        }
 
+    
 
             }
         }
+    
+        
 
-        return new ParseResult(logEntries, malformedEntriesCount, unrecognisedEntriesCount);
+        return new ParseResult(logEntries, malformedEntries, unrecognisedEntries);
 
     }
 
@@ -121,17 +135,24 @@ public class LogParser {
             throw new IllegalArgumentException("Log entry cannot be null or blank");
         }   
         int fromPosition = logEntry.indexOf("from");
+
         if (fromPosition == -1) {
             throw new IllegalArgumentException("Could not locate username");
-        } 
-        int usernameStart = logEntry.lastIndexOf(" ", fromPosition - 1);
-        if (usernameStart == -1) {
+        }
+
+        int usernameEnd = logEntry.lastIndexOf(" ", fromPosition - 1);
+
+        if (usernameEnd == -1) {
             throw new IllegalArgumentException("Could not locate username");
         }
-        String username = logEntry.substring(usernameStart + 1, fromPosition - 1);
-        if (username.isBlank()) {
-            throw new IllegalArgumentException("Could not locate username");
+
+        int usernameStart = logEntry.lastIndexOf(" ", usernameEnd - 1);
+
+        if (usernameStart == -1 || usernameStart + 1 >= usernameEnd) {
+            throw new IllegalArgumentException("Could not extract username");
         }
+
+        String username = logEntry.substring(usernameStart + 1, usernameEnd);
         return username;
         }
 

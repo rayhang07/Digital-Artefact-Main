@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import com.example.loganalyser.model.ParseResult;
+import com.example.loganalyser.parser.LogParser;
 public class CommandAnalysis {
     
     // Method to handle the analysis command, this will be called from the runCli method in the CommandHandler class. This is justified as it allows for a modular and organized approach to handling user commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as the command handling logic is separated from the main method.
@@ -18,6 +20,24 @@ public class CommandAnalysis {
         if (!verifyLogFilePath(logFilePath)) {
             return;
         }
+
+        Path logPath = Path.of(logFilePath.replace("\"", ""));
+        LogParser logParser = new LogParser();
+        ParseResult parseResult;
+        try {
+             parseResult = logParser.parseLogFile(logPath);
+
+        } 
+        catch (Exception e) {
+            System.out.println("Error analysing log file " + e.getMessage());
+            return;
+        }
+
+        
+        System.out.println("Recognised entries: " + parseResult.getLogEntries().size());
+        System.out.println( "Malformed entries: " + parseResult.getMalformedEntries().size());
+        System.out.println("Unrecognised entries: " + parseResult.getUnrecognisedEntries().size());
+        
     }
 
     // Method to verify the log file path, this will be called from the handleAnalysis method in the CommandAnalysis class. This is justified as it allows for separating analysis logic from validation logic.
