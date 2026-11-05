@@ -1,0 +1,5 @@
+Mar 25 20:25:36 web0 sshd[14144]: Accepted publickey for ubuntu from 10.103.160.144 port 59200 ssh2: RSA SHA256:l/zFNib1vJ+64nxLB4N9KaVhBEMf8arbWGxHQg01SW8
+Mar 25 20:25:36 web0 sshd[14144]: pam_unix(sshd:session): session opened for user ubuntu by (uid=0)
+Mar 25 20:39:12 web0 sshd[14885]: pam_unix(sshd:session): session closed for user ubuntu
+Jul 17 15:47:10 web sshd[5679]: Failed password for invalid user admin from 192.0.2.82 port 38654 ssh2
+Jul 17 16:02:33 web sshd[5678]: Disconnected from user devuser 10.0.2.15 port 49812

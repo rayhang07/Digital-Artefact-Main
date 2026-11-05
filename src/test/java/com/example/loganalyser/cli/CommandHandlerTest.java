@@ -61,4 +61,27 @@ public class CommandHandlerTest {
         String output = outputStream.toString();
         assertTrue(output.contains("Log Analyser Version:"));
     }
+
+    @Test 
+    public void testInvalidCommand() {
+        String input = "invalidcommand\nloganalyser --exit\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Invalid command. Use the command loganalyser --help to see all commands available."));
+    }
+
+    @Test
+    public void testAnalyseCommand() {
+        String input = "loganalyser --analyse\nsrc/test/java/com/example/loganalyser/resources/sample.log\nloganalyser --exit\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Please enter the path to the log file you want to analyse:"));
+    }
+
 }

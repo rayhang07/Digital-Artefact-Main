@@ -14,7 +14,7 @@ public class CommandAnalysis {
         System.out.println("Please enter the path to the log file you want to analyse:");
        
        // Read the user input from the command line, store it in the logFilePath variable, and pass it to the verifyLogFilePath method to check if the log file path is valid. 
-        String logFilePath = cliScanner.nextLine();
+        String logFilePath = cliScanner.nextLine().trim();
         
         // Verify the log file path by calling the verifyLogFilePath method, which checks if the log file path is valid and prints an error message if it is not. 
         if (!verifyLogFilePath(logFilePath)) {

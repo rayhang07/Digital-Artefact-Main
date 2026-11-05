@@ -13,8 +13,18 @@ public class CommandHandler {
     // ANSI escape code to reset the color back to default. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
     private static final String RESET = "\u001B[0m";
 
-    private final CommandAnalysis commandAnalysis = new CommandAnalysis();
+    // Create an instance of the CommandAnalysis class to handle the analysis of log files
+    private final CommandAnalysis commandAnalysis; 
 
+    // Constructor for the CommandHandler class, to initialise the CommandAnalysis object. 
+    public CommandHandler() {
+        this.commandAnalysis = new CommandAnalysis();
+    }
+
+    // Constructor for the CommandHandler class, to initialise the CommandAnalysis object with a specific instance. This has been justified as it allows for dependency injection to ensure that there is minimal coupling but also to allow for easier testing of the methods. The constructor overloading is also justified as it allows for flexibility in creating an object that can be used in testing by passing a mock object of the CommandAnalysis class.
+    public CommandHandler(CommandAnalysis commandAnalysis) {
+        this.commandAnalysis = commandAnalysis;
+    }
     // Method to run the command line interface, this will be called from the main method in the Main class (as the entry point of the application). This is justified as the main method is the entry point of the application and is responsible for initialising and starting the command line interface. By calling the run method from the main method, we ensure that the command line interface is started when the application is executed to actually gain user input and process commands. It is also a good practice to separate the command line interface logic from the main method, as it improves code organization and maintainability.
     public void runCli() {
 
