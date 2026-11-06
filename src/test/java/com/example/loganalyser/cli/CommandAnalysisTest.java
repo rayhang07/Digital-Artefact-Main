@@ -56,7 +56,7 @@ public class CommandAnalysisTest {
     @Test
     public void testHandleAnalysisWithValidPath() {
         // Assuming you have a valid log file at this path for testing
-        Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/sample.log\n");
+        Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/sample.log\n");
         commandAnalysis.handleAnalysis(scanner);
 
         String output = outputStream.toString();
@@ -68,7 +68,7 @@ public class CommandAnalysisTest {
 
     @Test 
     public void testHandleAnalysisWithQuotes() {
-        Scanner scanner = new Scanner("\"src/test/java/com/example/loganalyser/resources/sample.log\"\n");
+        Scanner scanner = new Scanner("\"src/test/java/com/example/loganalyser/resources//logs/sample.log\"\n");
         commandAnalysis.handleAnalysis(scanner);
 
         String output = outputStream.toString();
@@ -77,7 +77,7 @@ public class CommandAnalysisTest {
 
     @Test 
     public void testHandleAnalysisWithNonExistentFile() {
-        Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/nonexistent.log\n");
+        Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/nonexistent.log\n");
         commandAnalysis.handleAnalysis(scanner);
 
         String output = outputStream.toString();
@@ -87,7 +87,7 @@ public class CommandAnalysisTest {
     @Test 
     @EnabledOnOs(OS.LINUX)
     public void testHandleAnalysisWithUnreadableFile() throws IOException {
-        Path path = java.nio.file.Paths.get("src/test/java/com/example/loganalyser/resources/unreadable.log");
+        Path path = java.nio.file.Paths.get("src/test/java/com/example/loganalyser/resources/logs/unreadable.log");
         Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("---------"));
         Scanner scanner = new Scanner(path.toString() + "\n");
         commandAnalysis.handleAnalysis(scanner);

@@ -75,7 +75,7 @@ public class CommandHandlerTest {
 
     @Test
     public void testAnalyseCommand() {
-        String input = "loganalyser --analyse\nsrc/test/java/com/example/loganalyser/resources/sample.log\nloganalyser --exit\n";
+        String input = "loganalyser --analyse\nsrc/test/java/com/example/loganalyser/resources/logs/sample.log\nloganalyser --exit\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
 
         commandHandler.runCli();

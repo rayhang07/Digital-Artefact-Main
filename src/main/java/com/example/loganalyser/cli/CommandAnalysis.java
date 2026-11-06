@@ -21,6 +21,7 @@ public class CommandAnalysis {
             return;
         }
 
+        // Create a Path object from the log file path, create a LogParser object, and call the parseLogFile method to parse the log file. If an exception is thrown during parsing, print an error message and return. Otherwise, print the number of recognised, malformed, and unrecognised log entries.
         Path logPath = Path.of(logFilePath.replace("\"", ""));
         LogParser logParser = new LogParser();
         ParseResult parseResult;

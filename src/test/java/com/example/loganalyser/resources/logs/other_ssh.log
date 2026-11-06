@@ -1,0 +1,4 @@
+Nov 06 09:15:22 server sshd[1234]: Disconnected from user admin 192.168.0.10 port 54321
+Nov 06 09:16:35 server sshd[1235]: Connection closed by 192.168.0.15 port 54322
+Nov 06 09:18:42 server sshd[1236]: Received disconnect from 192.168.0.20 port 54323
+Nov 06 09:20:11 server sshd[1237]: Server listening on 0.0.0.0 port 22

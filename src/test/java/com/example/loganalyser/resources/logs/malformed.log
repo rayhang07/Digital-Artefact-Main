@@ -1,0 +1,5 @@
+Nov 06 09:15:22 server sshd[1234]: Failed password for admin
+Nov 06 09:16:35 server sshd[1235]: Accepted password
+Nov 06 09:18:42 server sshd[1236]: Failed password for from 192.168.0.20 port 54323 ssh2
+Nov 06 09:20:11 server sshd[1237]: Accepted publickey for user1 from port 54324 ssh2
+Nov 06 09:15:22 server sshd[1234]: Failed password for admin from 192.168.0.256 port 54321 ssh2
