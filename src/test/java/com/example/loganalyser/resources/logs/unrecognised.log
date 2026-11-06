@@ -1,0 +1,4 @@
+Nov 06 09:15:22 server kernel: USB device connected
+Nov 06 09:16:35 server systemd: Started system service
+Nov 06 09:18:42 server cron: Job executed successfully
+Nov 06 09:20:11 server sudo: User admin executed command

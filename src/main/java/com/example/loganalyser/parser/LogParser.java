@@ -22,7 +22,7 @@ import com.example.loganalyser.model.ParseResult;
 public class LogParser {
     
     // Method to determine if a log entry is an SSH log entry, this will be called from the parseLogFile method in the LogParser class. This is justified as it allows for separating analysis logic from validation logic.
-    public boolean isSshLogEntry(String logEntry) {
+    private boolean isSshLogEntry(String logEntry) {
 
         // Check if the log entry is null or blank, if so return false. This allows for handling user input that may be empty or null, which can cause issues when trying to access the log file.
         if (logEntry == null || logEntry.isBlank()) {
@@ -30,7 +30,7 @@ public class LogParser {
         }
 
         // Check if the log entry contains "sshd" and any of the following keywords: "Failed password", "Accepted password", "Failed publickey", "Accepted publickey", "Failed keyboard-interactive", "Invalid user", or "Accepted keyboard-interactive". If so return true, otherwise return false. This allows for identifying SSH log entries based on specific keywords that are commonly found in SSH log entries.
-        else if (logEntry.contains("sshd") && (logEntry.contains("Failed password") || logEntry.contains("Accepted password") || logEntry.contains("Failed publickey") || logEntry.contains("Accepted publickey") ||  logEntry.contains("Failed keyboard-interactive") || logEntry.contains("Invalid user") || logEntry.contains("Accepted keyboard-interactive"))) {
+        else if (logEntry.contains("sshd")) {
             return true;
         }
         
@@ -46,6 +46,8 @@ public class LogParser {
         List<LogEntry> logEntries = new ArrayList<>();
         List<String> malformedEntries = new ArrayList<>();
         List<String> unrecognisedEntries = new ArrayList<>();
+        List<String> otherSSHEntries = new ArrayList<>();
+        EventType eventType;
 
         // try block is used to handle any IOExceptions that may occur when reading the log file. This allows for graceful error handling and prevents the program from crashing due to unhandled exceptions.
         try (BufferedReader reader = Files.newBufferedReader(logFilePath)) {
@@ -65,17 +67,26 @@ public class LogParser {
                     unrecognisedEntries.add(line);
                     continue; 
                 }
-        // Try to create a new LogEntry object from the line, if it fails add it to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.        
-        try {
-            LogEntry logEntry = new LogEntry(determineEventType(line), extractSourceIp(line), extractUsername(line), extractDate(line), extractTime(line), eventDetails(line));
-            logEntries.add(logEntry);
-        }
 
-        // Catch any IllegalArgumentException or DateTimeParseException that may occur when creating a new LogEntry object, add the line to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
-        catch (IllegalArgumentException | DateTimeParseException e) {
-            malformedEntries.add(line);
-            continue;
-        }
+            try {
+                eventType = determineEventType(line);
+            } 
+            catch (IllegalArgumentException e) {
+                otherSSHEntries.add(line);
+                continue;
+            }
+            
+            // Try to create a new LogEntry object from the line, if it fails add it to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.        
+            try {
+                LogEntry logEntry = new LogEntry(determineEventType(line), extractSourceIp(line), extractUsername(line), extractDate(line), extractTime(line), eventDetails(line));
+                logEntries.add(logEntry);
+            }
+
+            // Catch any IllegalArgumentException or DateTimeParseException that may occur when creating a new LogEntry object, add the line to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
+            catch (IllegalArgumentException | DateTimeParseException e) {
+                malformedEntries.add(line);
+                continue;
+            }
 
     
 
@@ -83,7 +94,7 @@ public class LogParser {
         }      
     
         // Return a new ParseResult object containing the lists of log entries, malformed entries, and unrecognised entries. This allows for returning the results of the parsing operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
-        return new ParseResult(logEntries, malformedEntries, unrecognisedEntries);
+        return new ParseResult(logEntries, malformedEntries, unrecognisedEntries, otherSSHEntries);
 
     }
 
@@ -124,10 +135,39 @@ public class LogParser {
         if (fromPosition == -1 || portPosition == -1) {
            throw new IllegalArgumentException("Could not locate source IP");
         }
+
+        if (!(portPosition -1 > fromPosition +5)) {
+            throw new IllegalArgumentException("Could not locate source IP");
+        }
         else {
             // Extract the source IP address from the log entry using the positions of the "from" and "port" keywords, if the extracted source IP is blank throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file. The source IP is extracted by taking the substring of the log entry starting from the position of the "from" keyword plus 5 (to skip the "from " part) and ending at the position of the "port" keyword minus 1 (to exclude the space before "port"). This ensures that only the source IP address is extracted from the log entry.
             String sourceIp = logEntry.substring(fromPosition + 5, portPosition - 1);
             if (sourceIp.isBlank()) {
+                throw new IllegalArgumentException("Could not locate source IP");
+            }
+            String[] octets = sourceIp.split("\\.");
+            if (octets.length != 4) {
+                throw new IllegalArgumentException ("Invalid IP address");
+            }
+            for (int i=0; i< octets.length; i++) {
+                if (octets[i] == null || octets[i].isBlank()) {
+                    throw new IllegalArgumentException("Invalid IP address");
+                }
+                try {
+                    int octet = Integer.parseInt(octets[i]);
+                    if (octet < 0 || octet > 255) {
+                        throw new IllegalArgumentException("Invalid IP address");
+                    }
+                }
+                catch (NumberFormatException e)  {
+                    throw new IllegalArgumentException("Invalid IP address ", e);
+                }
+
+               
+            
+            }
+
+            if (sourceIp.equals("from") || sourceIp.equals("port")) {
                 throw new IllegalArgumentException("Could not locate source IP");
             }
             
@@ -183,7 +223,7 @@ public class LogParser {
         // Extract the time as the characters at index 7 to 14 of the timestamp in the format of HH:mm:ss, and parse it into a LocalTime object. This allows for handling log entries that may be in different formats or locales, which can cause issues when trying to access the log file.
         String time = timestamp.substring(7, 15);
         LocalTime logTime = LocalTime.parse(time);
-
+    
         // Return the extracted LocalTime object representing the time of the log entry. This allows for returning the results of the extraction operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
         return logTime;
     }
@@ -203,6 +243,7 @@ public class LogParser {
             throw new IllegalArgumentException("Could not locate username");
         }
 
+
         // Get the position of the last space before the "from" keyword, if it is not found throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         int usernameEnd = logEntry.lastIndexOf(" ", fromPosition - 1);
 
@@ -219,6 +260,13 @@ public class LogParser {
 
         // Extract the username from the log entry using the positions of the last space before the username and the last space before the "from" keyword, and return it. The username is extracted by taking the substring of the log entry starting from the position of the last space before the username plus 1 (to skip the space) and ending at the position of the last space before the "from" keyword. This ensures that only the username is extracted from the log entry.
         String username = logEntry.substring(usernameStart + 1, usernameEnd);
+        if (username.isBlank()) {
+            throw new IllegalArgumentException("Could not locate username");
+        }
+
+        if (username.equals("for")) {
+            throw new IllegalArgumentException("Could not locate username");
+        }
 
         // return the extracted username. This allows for returning the results of the extraction operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
         return username;
@@ -240,12 +288,22 @@ public class LogParser {
         if (failedPosition == -1 && acceptedPosition == -1) {
             throw new IllegalArgumentException("Log entry does not contain a recognised authentication result");
         }
+
+        if (forPosition == -1) {
+            throw new IllegalArgumentException("Could not locate username");
+        }
         
+        if (!(forPosition-1 > failedPosition+7)) {
+            throw new IllegalArgumentException("Could not locate authentication method");
+        }
         // Extract the authentication method from the log entry based on whether it contains "Failed" or "Accepted", and return it. The authentication method is extracted by taking the substring of the log entry starting from the position of the "Failed" keyword plus 7 (to skip the "Failed " part) or the position of the "Accepted" keyword plus 9 (to skip the "Accepted " part) and ending at the position of the "for" keyword minus 1 (to exclude the space before "for"). This ensures that only the authentication method is extracted from the log entry.
-        if (logEntry.contains("Failed")) {
+        else if (logEntry.contains("Failed")) {
             authenticationMethod = logEntry.substring(failedPosition+7, forPosition-1);
         }
 
+        if (!(forPosition-1 > acceptedPosition+9)) {
+            throw new IllegalArgumentException("Could not locate authentication method");
+        }
         else if (logEntry.contains("Accepted")) {
             authenticationMethod = logEntry.substring(acceptedPosition+9, forPosition-1);
         }
@@ -253,6 +311,10 @@ public class LogParser {
         // Check if the extracted authentication method is blank, if so throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         if (authenticationMethod.isBlank()) {
             throw new IllegalArgumentException("Authentication method cannot be blank");
+        }
+
+        if (authenticationMethod.equals("for") || authenticationMethod.equals("Failed") || authenticationMethod.equals("Accepted")) {
+            throw new IllegalArgumentException("Could not locate authentication method");
         }
 
         // Return the extracted authentication method. This allows for returning the results of the extraction operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
@@ -281,9 +343,8 @@ public class LogParser {
         if (portStart == -1 || portEnd == -1) {
             throw new IllegalArgumentException("Could not extract source port");
         }
-
-        // Check if the start and end positions of the source port are equal, if so throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
-        if (portStart == portEnd) {
+   
+        if (!(portEnd > portStart)) {
             throw new IllegalArgumentException("Could not extract source port");
         }
 
@@ -293,6 +354,10 @@ public class LogParser {
         // Check if the extracted source port is blank, if so throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         if (sourcePort.isBlank()) {
             throw new IllegalArgumentException("Source port cannot be blank");
+        }
+
+        if (sourcePort.equals("Port")) {
+            throw new IllegalArgumentException("Could not locate source port");
         }
         return sourcePort;
     }
@@ -337,6 +402,9 @@ public class LogParser {
         String sshProtocol = extractSshProtocol(logEntry);
         String eventDetails = ("Authentication method: " +authenticationMethod + ", Source port: " +sourcePort + ", SSH protocol: " +sshProtocol);
 
+        if (eventDetails.isBlank()) {
+            throw new IllegalArgumentException("Could not locate event details");
+        }
         // Return the concatenated string representing the event details. This allows for returning the results of the extraction operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
         return eventDetails;
     }

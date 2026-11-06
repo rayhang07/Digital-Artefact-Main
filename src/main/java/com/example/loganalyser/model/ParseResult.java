@@ -11,16 +11,17 @@ public class ParseResult {
     private final List<LogEntry> logEntries;
     private final List<String> malformedEntries;
     private final List<String> unrecognisedEntries;
+    private final List<String> otherSSHEntries;
 
     // Constructor to create a new ParseResult object with the specified list of log entries, list of malformed entries, and list of unrecognised entries.
-    public ParseResult(List<LogEntry> logEntries, List<String> malformedEntries, List<String> unrecognisedEntries) {
+    public ParseResult(List<LogEntry> logEntries, List<String> malformedEntries, List<String> unrecognisedEntries, List<String> otherSSHEntries) {
         
         // Validate the input parameters to ensure that they are not null or negative, and throw an IllegalArgumentException if they are. This is justified as it ensures that there is robust input validation and error handling in place, which is needed to prevent invalid data from being processed and to maintain the integrity of the parse result data.
         if (logEntries == null) {
             throw new IllegalArgumentException("Log entries list cannot be null");
         }
-        if (malformedEntries == null || unrecognisedEntries == null) {
-            throw new IllegalArgumentException("Entry counts cannot be negative");
+        if (malformedEntries == null || unrecognisedEntries == null || otherSSHEntries == null) {
+            throw new IllegalArgumentException("Entry lists cannot be null");
         }
 
         // Assign the input parameters to the corresponding fields of the ParseResult object.
@@ -28,6 +29,7 @@ public class ParseResult {
         this.logEntries = new ArrayList<>(logEntries);
         this.malformedEntries = new ArrayList<>(malformedEntries);
         this.unrecognisedEntries = unrecognisedEntries;
+        this.otherSSHEntries = otherSSHEntries;
     }
 
     // Getter methods to retrieve log entries
@@ -46,5 +48,11 @@ public class ParseResult {
     // Unrecognised entries are returned as a new ArrayList to ensure that the internal list is not affected by external modifications, which is needed to maintain the integrity of the parse result data.
     public List<String> getUnrecognisedEntries() {
         return new ArrayList<>(unrecognisedEntries);
+    }
+
+    // Getter methods to retrieve other SSH entries
+    // Other SSH entries are returned as a new ArrayList to ensure that the internal list is not affected by external modifications, which is needed to maintain the integrity of the parse result data.
+    public List<String> getOtherSSHEntries() {
+        return new ArrayList<>(otherSSHEntries);
     }
 }
