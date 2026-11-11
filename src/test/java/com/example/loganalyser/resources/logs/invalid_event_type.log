@@ -1,0 +1,5 @@
+Nov 09 12:01:00 server sshd[2001]: Disconnected from user alice 192.168.1.10 port 54321
+Nov 09 12:01:01 server sshd[2002]: pam_unix(sshd:session): session opened for user bob by (uid=0)
+Nov 09 12:01:02 server sshd[2003]: pam_unix(sshd:session): session closed for user charlie
+Nov 09 12:01:03 server sshd[2004]: Connection closed by 192.168.1.20 port 54323
+Nov 06 09:15:22 server sshd[1234]: password for admin from 192.168.0.10 port 54321 ssh2

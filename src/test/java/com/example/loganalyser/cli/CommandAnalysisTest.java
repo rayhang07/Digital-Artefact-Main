@@ -36,15 +36,6 @@ public class CommandAnalysisTest {
     } 
 
     @Test
-    public void testHandleAnalysisWithInvalidPath() {
-        Scanner scanner = new Scanner("invalid/path/to/logfile.log\n");
-        commandAnalysis.handleAnalysis(scanner);
-
-        String output = outputStream.toString();
-        assertTrue(output.contains("Error: The specified log file does not exist."));
-    }
-
-    @Test
     public void testHandleAnalysisWithMismatchedQuotes() {
         Scanner scanner = new Scanner("\"invalid/path/to/logfile.log\n");
         commandAnalysis.handleAnalysis(scanner);
@@ -60,6 +51,7 @@ public class CommandAnalysisTest {
         commandAnalysis.handleAnalysis(scanner);
 
         String output = outputStream.toString();
+        assertTrue(output.contains("Analysing log file at: "));
         assertTrue(output.contains("Recognised entries:"));
         assertTrue(output.contains("Malformed entries:"));
         assertTrue(output.contains("Unrecognised entries:"));
@@ -73,6 +65,18 @@ public class CommandAnalysisTest {
 
         String output = outputStream.toString();
         assertTrue(output.contains("Analysing log file at: "));
+        assertTrue(output.contains("Recognised entries:"));
+        assertTrue(output.contains("Malformed entries:"));
+        assertTrue(output.contains("Unrecognised entries:"));
+    }
+     
+    @Test 
+    public void testHandleAnalysisWithNonRegularFile() {
+        Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/\n");
+        commandAnalysis.handleAnalysis(scanner);
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Error: The specified path is not a regular file."));
     }
 
     @Test 

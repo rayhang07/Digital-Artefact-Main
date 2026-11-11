@@ -28,8 +28,8 @@ public class ParseResult {
         // Log entries are copied into a new ArrayList to ensure that the internal list is not affected by external modifications, which is needed to maintain the integrity of the parse result data.
         this.logEntries = new ArrayList<>(logEntries);
         this.malformedEntries = new ArrayList<>(malformedEntries);
-        this.unrecognisedEntries = unrecognisedEntries;
-        this.otherSSHEntries = otherSSHEntries;
+        this.unrecognisedEntries = new ArrayList<>(unrecognisedEntries);
+        this.otherSSHEntries = new ArrayList<>(otherSSHEntries);
     }
 
     // Getter methods to retrieve log entries
