@@ -29,7 +29,7 @@ public class LogParser {
             return false;
         }
 
-        // Check if the log entry contains "sshd" and any of the following keywords: "Failed password", "Accepted password", "Failed publickey", "Accepted publickey", "Failed keyboard-interactive", "Invalid user", or "Accepted keyboard-interactive". If so return true, otherwise return false. This allows for identifying SSH log entries based on specific keywords that are commonly found in SSH log entries.
+        // Check if the log entry contains "sshd" 
         else if (logEntry.contains("sshd")) {
             return true;
         }
@@ -37,6 +37,8 @@ public class LogParser {
         // If the log entry does not contain "sshd" or any of the specified keywords, return false. This allows for identifying non-SSH log entries based on the absence of specific keywords that are commonly found in SSH log entries.
         return false;   
     }
+
+    
 
    
     // Method to parse a log file and extract relevant information from log entries, this will be called from the handleAnalysis method in the CommandAnalysis class. This is justified as it allows for separating analysis logic from validation logic.
@@ -47,7 +49,6 @@ public class LogParser {
         List<String> malformedEntries = new ArrayList<>();
         List<String> unrecognisedEntries = new ArrayList<>();
         List<String> otherSSHEntries = new ArrayList<>();
-        EventType eventType;
 
         // try block is used to handle any IOExceptions that may occur when reading the log file. This allows for graceful error handling and prevents the program from crashing due to unhandled exceptions.
         try (BufferedReader reader = Files.newBufferedReader(logFilePath)) {
@@ -68,28 +69,26 @@ public class LogParser {
                     continue; 
                 }
 
-            try {
-                eventType = determineEventType(line);
-            } 
-            catch (IllegalArgumentException e) {
-                otherSSHEntries.add(line);
-                continue;
-            }
-            
-            // Try to create a new LogEntry object from the line, if it fails add it to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.        
-            try {
-                LogEntry logEntry = new LogEntry(determineEventType(line), extractSourceIp(line), extractUsername(line), extractDate(line), extractTime(line), eventDetails(line));
-                logEntries.add(logEntry);
-            }
+                // Try to create a new LogEntry object from the line, if it fails add it to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.        
+                try {
+                    LogEntry logEntry = new LogEntry(determineEventType(line), extractSourceIp(line), extractUsername(line), extractDate(line), extractTime(line), eventDetails(line));
+                    logEntries.add(logEntry);
+                }
 
-            // Catch any IllegalArgumentException or DateTimeParseException that may occur when creating a new LogEntry object, add the line to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
-            catch (IllegalArgumentException | DateTimeParseException e) {
-                malformedEntries.add(line);
-                continue;
-            }
-
-    
-
+                // Catch any IllegalArgumentException or DateTimeParseException that may occur when creating a new LogEntry object, add the line to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
+                catch (IllegalArgumentException e) {
+                    if (e.getMessage().equals("Non authentication SSH event")) {
+                        otherSSHEntries.add(line);
+                    }
+                    else {
+                        malformedEntries.add(line);
+                    }
+                    continue;
+                }
+                catch (DateTimeParseException e) {
+                    malformedEntries.add(line);
+                    continue;
+                }
             }
         }      
     
@@ -100,24 +99,27 @@ public class LogParser {
 
     // Method to determine the event type of a log entry, this will be called from the parseLogFile method in the LogParser class. This is justified as it allows for separating analysis logic from validation logic.
     public EventType determineEventType(String logEntry) {
+        boolean hasAuthenticationMethod = logEntry.contains("password") || logEntry.contains("publickey") || logEntry.contains("keyboard-interactive");
+        boolean hasAuthenticationResult =
+        logEntry.contains("Accepted") || logEntry.contains("Failed");
 
-        // Check if the log entry is null or blank, if so throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
-        if (logEntry == null || logEntry.isBlank()) {
-            throw new IllegalArgumentException("Log entry cannot be null or blank");
-        } 
-        // Check if the log entry contains "Accepted", if so return EventType.SSH_LOGIN_SUCCESS. This allows for identifying successful SSH login attempts based on specific keywords that are commonly found in SSH log entries.
+        if (!hasAuthenticationMethod && !hasAuthenticationResult) {
+            throw new IllegalArgumentException("Non authentication SSH event");
+        }
+
+        if (!hasAuthenticationMethod || !hasAuthenticationResult) {
+            throw new IllegalArgumentException("Malformed authentication event");
+        }
+
         if (logEntry.contains("Accepted")) {
             return EventType.SSH_LOGIN_SUCCESS;
-        } 
-        
-        // Check if the log entry contains "Failed" or "Invalid user", if so return EventType.SSH_LOGIN_FAILURE. This allows for identifying failed SSH login attempts based on specific keywords that are commonly found in SSH log entries.
-        else if (logEntry.contains("Failed") || logEntry.contains("Invalid user")) {
+        }
+        else if (logEntry.contains("Failed") || (logEntry.contains("Invalid user"))) {
             return EventType.SSH_LOGIN_FAILURE;
-        } 
+        }
 
-        // If the log entry does not contain "Accepted", "Failed", or "Invalid user", throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         else {
-            throw new IllegalArgumentException("Unrecognised log entry: " + logEntry);
+            throw new IllegalArgumentException("Unrecognised authentication result");
         }
     }
 
@@ -339,7 +341,7 @@ public class LogParser {
 
         // Get the start and end positions of the source port in the log entry, if either is not found or if they are equal throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file. The start position of the source port is calculated by adding 5 to the position of the "port" keyword (to skip the "port " part), and the end position is calculated by finding the index of the first space after the start position. This ensures that only the source port is extracted from the log entry.
         int portStart = portPosition+5;
-        int portEnd = logEntry.indexOf(" ", portPosition+5);
+        int portEnd = logEntry.indexOf(" ", portPosition+5); 
         if (portStart == -1 || portEnd == -1) {
             throw new IllegalArgumentException("Could not extract source port");
         }
@@ -351,6 +353,16 @@ public class LogParser {
         // Extract the source port from the log entry using the start and end positions, and return it. The source port is extracted by taking the substring of the log entry starting from the start position and ending at the end position. This ensures that only the source port is extracted from the log entry.
         sourcePort = logEntry.substring(portStart, portEnd);
 
+        try {
+            int port = Integer.parseInt(sourcePort);
+            if (port < 0 || port > 65535) {
+                throw new IllegalArgumentException("Source port must be between 0 and 65535");
+            }
+        }
+        catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Source Port must an integer");
+        }
+       
         // Check if the extracted source port is blank, if so throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         if (sourcePort.isBlank()) {
             throw new IllegalArgumentException("Source port cannot be blank");
@@ -370,21 +382,52 @@ public class LogParser {
             throw new IllegalArgumentException("Log entry cannot be null or blank");
         } 
 
-        // Get the position of the last space in the log entry, if it is not found throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
-        int finalSpace = logEntry.lastIndexOf(" ");
-        if (finalSpace == -1) {
-            throw new IllegalArgumentException("Could not extract SSH protocol");
+            // Locate the source port keyword.
+        int portPosition = logEntry.indexOf("port");
+        if (portPosition == -1) {
+            throw new IllegalArgumentException("Could not locate source port");
         }
 
-        // Extract the SSH protocol from the log entry using the position of the last space, and return it. The SSH protocol is extracted by taking the substring of the log entry starting from the position of the last space plus 1 (to skip the space) and ending at the end of the log entry. This ensures that only the SSH protocol is extracted from the log entry.
-        String sshProtocol = logEntry.substring(finalSpace +1);
+        // Locate the beginning of the source port number.
+        int portStart = portPosition + 5;
 
-        // Check if the extracted SSH protocol is blank, if so throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
+        // Locate the end of the source port number.
+        int portEnd = logEntry.indexOf(" ", portStart);
+        if (portEnd == -1 || portEnd == portStart) {
+            throw new IllegalArgumentException("Could not locate end of source port");
+        }
+
+        // Locate the beginning of the SSH protocol.
+        int protocolStart = portEnd + 1;
+
+        // Locate the end of the SSH protocol token.
+        int protocolEnd = logEntry.indexOf(" ", protocolStart);
+
+        String sshProtocol;
+
+        if (protocolEnd == -1) {
+            sshProtocol = logEntry.substring(protocolStart);
+        } 
+        
+        else {
+            sshProtocol = logEntry.substring(protocolStart, protocolEnd);
+        }
+
+        // Remove the trailing colon if additional public-key information follows. This is to ensure that the protocol is extracted correctly and not the public key that may also be provided.
+        if (sshProtocol.endsWith(":")) {
+            sshProtocol = sshProtocol.substring(0, sshProtocol.length() - 1);
+        }
+
+        // Ensure that the extracted SSH protocol is supported.
+        if (!sshProtocol.equals("ssh2")) {
+            throw new IllegalArgumentException("Unsupported SSH protocol");
+        }
+
+        // Ensure the extracted SSH protocol is not empty or blank.
         if (sshProtocol.isBlank()) {
-            throw new IllegalArgumentException("Could not extract SSH protocol");
+            throw new IllegalArgumentException("SSH protocol cannot be blank");
         }
 
-        // Return the extracted SSH protocol. This allows for returning the results of the extraction operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
         return sshProtocol;
     }
 

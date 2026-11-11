@@ -1,0 +1,7 @@
+Nov 09 12:01:00 server sshd[2001]: Failed password for alice from 192.168.1 port 54321 ssh2
+Nov 09 12:01:01 server sshd[2002]: Failed password for bob from 192.168.1.10.5 port 54322 ssh2
+Nov 09 12:01:02 server sshd[2003]: Failed password for charlie from 192.168.a.10 port 54323 ssh2
+Nov 09 12:01:03 server sshd[2004]: Failed password for david from 192.168.1.256 port 54324 ssh2
+Nov 09 12:01:04 server sshd[2005]: Failed password for eve from 192.168.-1.10 port 54325 ssh2
+Nov 09 12:01:05 server sshd[2006]: Failed password for frank from 192.168..10 port 54326 ssh2
+Nov 09 12:02:00 server sshd[3001]: Failed password for alice from port 54321 ssh2

@@ -84,4 +84,28 @@ public class CommandHandlerTest {
         assertTrue(output.contains("Please enter the path to the log file you want to analyse:"));
     }
 
+    @Test 
+    public void testValidCapitalLettersCommand() {
+        String input = "loganalyser --VERSION \nLOGANALYSER --EXIT\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Log Analyser Version:"));
+    }
+
+    @Test 
+    public void testInvalidCapitalLettersCommand() {
+        String input = "loganalyser --INVALID \nLOGANALYSER --EXIT\n";
+
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Invalid command. Use the command loganalyser --help to see all commands available."));
+
+    }
+
 }
