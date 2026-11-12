@@ -69,22 +69,26 @@ public class LogParser {
                     continue; 
                 }
 
-                // Try to create a new LogEntry object from the line, if it fails add it to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.        
+                // Try to create a new LogEntry object from the line, if it fails catch the exception thrown. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.        
                 try {
                     LogEntry logEntry = new LogEntry(determineEventType(line), extractSourceIp(line), extractUsername(line), extractDate(line), extractTime(line), eventDetails(line));
                     logEntries.add(logEntry);
                 }
 
-                // Catch any IllegalArgumentException or DateTimeParseException that may occur when creating a new LogEntry object, add the line to malformed entries and skip it. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
+                // Catch any IllegalArgumentException or DateTimeParseException that may occur when creating a new LogEntry object. If the exception message is linked to non authentication SSH event, it is added to the other ssh entries. This allows for handling log entries that may be malformed or contain non related event data, which can cause issues when trying to create alerts in the future
                 catch (IllegalArgumentException e) {
                     if (e.getMessage().equals("Non authentication SSH event")) {
                         otherSSHEntries.add(line);
                     }
+
+                    // If it cannot be parsed, then add it to the malformed entries and continue
                     else {
                         malformedEntries.add(line);
                     }
                     continue;
                 }
+
+                // If the date or time cannot be parsed, add it to the malformed entries and continue
                 catch (DateTimeParseException e) {
                     malformedEntries.add(line);
                     continue;
@@ -99,25 +103,34 @@ public class LogParser {
 
     // Method to determine the event type of a log entry, this will be called from the parseLogFile method in the LogParser class. This is justified as it allows for separating analysis logic from validation logic.
     public EventType determineEventType(String logEntry) {
-        boolean hasAuthenticationMethod = logEntry.contains("password") || logEntry.contains("publickey") || logEntry.contains("keyboard-interactive");
-        boolean hasAuthenticationResult =
-        logEntry.contains("Accepted") || logEntry.contains("Failed");
 
+        // bool that checks if an entry contains an authentication method
+        boolean hasAuthenticationMethod = logEntry.contains("password") || logEntry.contains("publickey") || logEntry.contains("keyboard-interactive");
+
+        // bool that checks if an entry contains an authentication result
+        boolean hasAuthenticationResult = logEntry.contains("Accepted") || logEntry.contains("Failed");
+
+        // if the log has neither then it is a non authentication event
         if (!hasAuthenticationMethod && !hasAuthenticationResult) {
             throw new IllegalArgumentException("Non authentication SSH event");
         }
 
+        // if it is missing one or the other then it is an authentication event that is malformed
         if (!hasAuthenticationMethod || !hasAuthenticationResult) {
             throw new IllegalArgumentException("Malformed authentication event");
         }
 
+        // Otherwise if it contains accepted its event type is a login success
         if (logEntry.contains("Accepted")) {
             return EventType.SSH_LOGIN_SUCCESS;
         }
+
+        // If it contains failed or invalid user its event type is login failure
         else if (logEntry.contains("Failed") || (logEntry.contains("Invalid user"))) {
             return EventType.SSH_LOGIN_FAILURE;
         }
 
+        // If it matches none then it is unrecognised
         else {
             throw new IllegalArgumentException("Unrecognised authentication result");
         }
@@ -138,6 +151,7 @@ public class LogParser {
            throw new IllegalArgumentException("Could not locate source IP");
         }
 
+        // Checks that the space before the word port is greater than the space after from meaning that an ip address is present if not then throw an exception that the ip cannot be located
         if (!(portPosition -1 > fromPosition +5)) {
             throw new IllegalArgumentException("Could not locate source IP");
         }
@@ -147,20 +161,34 @@ public class LogParser {
             if (sourceIp.isBlank()) {
                 throw new IllegalArgumentException("Could not locate source IP");
             }
+
+            // Create an array which splits the ip into its octets
             String[] octets = sourceIp.split("\\.");
+
+            // checks if the octet length is 4 and if not then throws an exception that it is invalid
             if (octets.length != 4) {
                 throw new IllegalArgumentException ("Invalid IP address");
             }
+
+            // loop through the array of octets
             for (int i=0; i< octets.length; i++) {
+
+                // If an octet is empty then throw an exception it is invalid
                 if (octets[i] == null || octets[i].isBlank()) {
                     throw new IllegalArgumentException("Invalid IP address");
                 }
+
+                // try to parse each octet into an array
                 try {
                     int octet = Integer.parseInt(octets[i]);
+
+                    // If an octet is below 0 or above the max value of 255 then throw an exception it is invalid
                     if (octet < 0 || octet > 255) {
                         throw new IllegalArgumentException("Invalid IP address");
                     }
                 }
+
+                // If it cannot be parsed into an integer then it is not a valid ip
                 catch (NumberFormatException e)  {
                     throw new IllegalArgumentException("Invalid IP address ", e);
                 }
@@ -169,6 +197,7 @@ public class LogParser {
             
             }
 
+            // If the Ip cannot be found so defaults to the words around such as from or port, throw an exception that it cannot be located
             if (sourceIp.equals("from") || sourceIp.equals("port")) {
                 throw new IllegalArgumentException("Could not locate source IP");
             }
@@ -241,6 +270,7 @@ public class LogParser {
         // Get the position of the "from" keyword in the log entry, if it is not found throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         int fromPosition = logEntry.indexOf("from");
 
+        // if the position of the word from cannot be found then throw an exception that we cant find the username (this is moreso to ensure that malformed entries can be processed correctly)
         if (fromPosition == -1) {
             throw new IllegalArgumentException("Could not locate username");
         }
@@ -249,6 +279,7 @@ public class LogParser {
         // Get the position of the last space before the "from" keyword, if it is not found throw an IllegalArgumentException. This allows for handling log entries that may be malformed or contain invalid data, which can cause issues when trying to access the log file.
         int usernameEnd = logEntry.lastIndexOf(" ", fromPosition - 1);
 
+        // if the end of the username cannot be found throw an exception
         if (usernameEnd == -1) {
             throw new IllegalArgumentException("Could not locate username");
         }
@@ -266,6 +297,7 @@ public class LogParser {
             throw new IllegalArgumentException("Could not locate username");
         }
 
+        // if the username is not found and defaults to the word before i.e. for then throw an exception
         if (username.equals("for")) {
             throw new IllegalArgumentException("Could not locate username");
         }
@@ -291,10 +323,12 @@ public class LogParser {
             throw new IllegalArgumentException("Log entry does not contain a recognised authentication result");
         }
 
+        // If the word for cannot be found throw an exception
         if (forPosition == -1) {
             throw new IllegalArgumentException("Could not locate username");
         }
         
+        // If the position of the space before the word for isnt greater than the space after the word failed an auth method cannot be found so throw an exception
         if (!(forPosition-1 > failedPosition+7)) {
             throw new IllegalArgumentException("Could not locate authentication method");
         }
@@ -303,9 +337,12 @@ public class LogParser {
             authenticationMethod = logEntry.substring(failedPosition+7, forPosition-1);
         }
 
+        // If the position of the space before the word for isnt greater than the space after the word accepted an auth method cannot be found so throw an exception
         if (!(forPosition-1 > acceptedPosition+9)) {
             throw new IllegalArgumentException("Could not locate authentication method");
         }
+
+        // otherwise if it contains accepted then extract the authentication method 
         else if (logEntry.contains("Accepted")) {
             authenticationMethod = logEntry.substring(acceptedPosition+9, forPosition-1);
         }
@@ -315,6 +352,7 @@ public class LogParser {
             throw new IllegalArgumentException("Authentication method cannot be blank");
         }
 
+        // if no auth method is found and it defaults to the keywords for, failed or accepted throw an exception 
         if (authenticationMethod.equals("for") || authenticationMethod.equals("Failed") || authenticationMethod.equals("Accepted")) {
             throw new IllegalArgumentException("Could not locate authentication method");
         }
@@ -346,6 +384,7 @@ public class LogParser {
             throw new IllegalArgumentException("Could not extract source port");
         }
    
+        // if the end of the port is not greater than the start throw an exception that it could not be extracted
         if (!(portEnd > portStart)) {
             throw new IllegalArgumentException("Could not extract source port");
         }
@@ -353,12 +392,17 @@ public class LogParser {
         // Extract the source port from the log entry using the start and end positions, and return it. The source port is extracted by taking the substring of the log entry starting from the start position and ending at the end position. This ensures that only the source port is extracted from the log entry.
         sourcePort = logEntry.substring(portStart, portEnd);
 
+        // try parse the string port into an integer
         try {
             int port = Integer.parseInt(sourcePort);
+
+            // check that the port is between the valid port numbers so cannot be negative or greater than 65535 or throw an exception
             if (port < 0 || port > 65535) {
                 throw new IllegalArgumentException("Source port must be between 0 and 65535");
             }
         }
+
+        // If cannot be parsed into an integer throw an exception that the port is not an integer
         catch (NumberFormatException e) {
             throw new IllegalArgumentException("Source Port must an integer");
         }
@@ -368,6 +412,7 @@ public class LogParser {
             throw new IllegalArgumentException("Source port cannot be blank");
         }
 
+        // if the port cannot be obtained and defaults to the word port throw an exception
         if (sourcePort.equals("Port")) {
             throw new IllegalArgumentException("Could not locate source port");
         }
@@ -382,8 +427,10 @@ public class LogParser {
             throw new IllegalArgumentException("Log entry cannot be null or blank");
         } 
 
-            // Locate the source port keyword.
+        // Locate the source port keyword.
         int portPosition = logEntry.indexOf("port");
+
+        // if the word port cannot be found throw an exception
         if (portPosition == -1) {
             throw new IllegalArgumentException("Could not locate source port");
         }
@@ -403,12 +450,15 @@ public class LogParser {
         // Locate the end of the SSH protocol token.
         int protocolEnd = logEntry.indexOf(" ", protocolStart);
 
+        // initialise a string to store the protocl
         String sshProtocol;
 
+        // if the end of the protocol cannot be found extract everything from the start of the protocol to the end of the string
         if (protocolEnd == -1) {
             sshProtocol = logEntry.substring(protocolStart);
         } 
         
+        // if it can be found extract between the start and end
         else {
             sshProtocol = logEntry.substring(protocolStart, protocolEnd);
         }
@@ -428,6 +478,7 @@ public class LogParser {
             throw new IllegalArgumentException("SSH protocol cannot be blank");
         }
 
+        // return the protocol
         return sshProtocol;
     }
 
@@ -443,8 +494,9 @@ public class LogParser {
         String authenticationMethod = extractAuthenticationMethod(logEntry);
         String sourcePort = extractSourcePort(logEntry);
         String sshProtocol = extractSshProtocol(logEntry);
-        String eventDetails = ("Authentication method: " +authenticationMethod + ", Source port: " +sourcePort + ", SSH protocol: " +sshProtocol);
+        String eventDetails = ("Authentication method: " +authenticationMethod + "\nSource port: " +sourcePort + "\nSSH protocol: " +sshProtocol);
 
+        // if the string is blank throw an exception
         if (eventDetails.isBlank()) {
             throw new IllegalArgumentException("Could not locate event details");
         }

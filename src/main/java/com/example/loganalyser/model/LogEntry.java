@@ -4,6 +4,7 @@ package com.example.loganalyser.model;
 import java.time.LocalTime;
 import java.time.MonthDay;
 
+// This class is used to represent a log entry object including the attributes an entry needs to contain
 public class LogEntry {
 
     // Declare the fields of the LogEntry class as private and final to ensure that they are immutable and cannot be modified after the object is created. This is justified as it allows for better encapsulation and data integrity, which is needed to ensure that the log entry data is accurate and consistent throughout the application. Using non final fields wasnt justified as it would allow for modification of the log entry data, which could lead to inconsistencies and errors in the application.
