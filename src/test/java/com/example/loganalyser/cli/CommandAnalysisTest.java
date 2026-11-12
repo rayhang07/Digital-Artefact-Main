@@ -19,6 +19,7 @@ public class CommandAnalysisTest {
     private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     private CommandAnalysis commandAnalysis;
     private Scanner scanner;
+    private CommandAlerts commandAlerts;
     private final PrintStream originalOut = System.out;
     
 
@@ -26,6 +27,7 @@ public class CommandAnalysisTest {
     public void setUp() {
         System.setOut(new PrintStream(outputStream));
         commandAnalysis = new CommandAnalysis();
+        commandAlerts = new CommandAlerts();
 
     }
 
@@ -38,7 +40,7 @@ public class CommandAnalysisTest {
     @Test
     public void testHandleAnalysisWithMismatchedQuotes() {
         Scanner scanner = new Scanner("\"invalid/path/to/logfile.log\n");
-        commandAnalysis.handleAnalysis(scanner);
+        commandAnalysis.handleAnalysis(scanner, commandAlerts);
     
         String output = outputStream.toString();
         assertTrue(output.contains("Error: Mismatched quotes in the log file path."));
@@ -48,7 +50,7 @@ public class CommandAnalysisTest {
     public void testHandleAnalysisWithValidPath() {
         // Assuming you have a valid log file at this path for testing
         Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/sample.log\n");
-        commandAnalysis.handleAnalysis(scanner);
+        commandAnalysis.handleAnalysis(scanner, commandAlerts);
 
         String output = outputStream.toString();
         assertTrue(output.contains("Analysing log file at: "));
@@ -61,7 +63,7 @@ public class CommandAnalysisTest {
     @Test 
     public void testHandleAnalysisWithQuotes() {
         Scanner scanner = new Scanner("\"src/test/java/com/example/loganalyser/resources//logs/sample.log\"\n");
-        commandAnalysis.handleAnalysis(scanner);
+        commandAnalysis.handleAnalysis(scanner, commandAlerts);
 
         String output = outputStream.toString();
         assertTrue(output.contains("Analysing log file at: "));
@@ -73,7 +75,7 @@ public class CommandAnalysisTest {
     @Test 
     public void testHandleAnalysisWithNonRegularFile() {
         Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/\n");
-        commandAnalysis.handleAnalysis(scanner);
+        commandAnalysis.handleAnalysis(scanner, commandAlerts);
 
         String output = outputStream.toString();
         assertTrue(output.contains("Error: The specified path is not a regular file."));
@@ -82,7 +84,7 @@ public class CommandAnalysisTest {
     @Test 
     public void testHandleAnalysisWithNonExistentFile() {
         Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/nonexistent.log\n");
-        commandAnalysis.handleAnalysis(scanner);
+        commandAnalysis.handleAnalysis(scanner, commandAlerts);
 
         String output = outputStream.toString();
         assertTrue(output.contains("Error: The specified log file does not exist."));
@@ -94,7 +96,7 @@ public class CommandAnalysisTest {
         Path path = java.nio.file.Paths.get("src/test/java/com/example/loganalyser/resources/logs/unreadable.log");
         Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("---------"));
         Scanner scanner = new Scanner(path.toString() + "\n");
-        commandAnalysis.handleAnalysis(scanner);
+        commandAnalysis.handleAnalysis(scanner, commandAlerts);
         
         String output = outputStream.toString();
         System.out.println(outputStream.toString());
