@@ -23,21 +23,21 @@ The application will analyse local log files rather than collect logs from remot
 
 ### 2.1 Input Handling
 
-- **FR-01:** The application shall accept a path to a supported authentication log file.
-- **FR-02:** The application shall check whether the specified file can be accessed.
-- **FR-03:** The application shall provide a clear error message when the file is missing, inaccessible or invalid.
-- **FR-04:** The application shall handle empty input files without crashing.
-- **FR-05:** The application shall not modify the original log file.
+- **FR-01:** The application shall accept a path to a supported authentication log file. done
+- **FR-02:** The application shall check whether the specified file can be accessed. done
+- **FR-03:** The application shall provide a clear error message when the file is missing, inaccessible or invalid. done
+- **FR-04:** The application shall handle empty input files without crashing. done
+- **FR-05:** The application shall not modify the original log file. done
 
 ### 2.2 Log Parsing
 
-- **FR-06:** The application shall read the input file and process its entries.
-- **FR-07:** The application shall identify supported failed and successful SSH authentication events.
-- **FR-08:** The parser shall extract relevant fields where available, including timestamps, usernames, source IP addresses and event types.
-- **FR-09:** The application shall distinguish recognised events from malformed or unsupported entries.
-- **FR-10:** A malformed or unsupported entry shall not automatically be treated as a failed or successful login.
-- **FR-11:** The application shall continue processing valid entries when individual lines cannot be parsed.
-- **FR-12:** The analysis results shall include counts of processed, malformed and unrecognised entries where these can be determined.
+- **FR-06:** The application shall read the input file and process its entries. done
+- **FR-07:** The application shall identify supported failed and successful SSH authentication events. done
+- **FR-08:** The parser shall extract relevant fields where available, including timestamps, usernames, source IP addresses and event types. done
+- **FR-09:** The application shall distinguish recognised events from malformed or unsupported entries. done
+- **FR-10:** A malformed or unsupported entry shall not automatically be treated as a failed or successful login. done
+- **FR-11:** The application shall continue processing valid entries when individual lines cannot be parsed. done
+- **FR-12:** The analysis results shall include counts of processed, malformed and unrecognised entries where these can be determined. done
 
 ### 2.3 Configuration
 
@@ -53,36 +53,36 @@ The application will analyse local log files rather than collect logs from remot
 
 ### 2.4 Threat Detection
 
-- **FR-22:** The application shall detect repeated failed SSH authentication attempts from the same source IP address.
-- **FR-23:** The initial default threshold shall be five or more failures within a five-minute window.
-- **FR-24:** Failed attempts from different source IP addresses shall be evaluated separately.
-- **FR-25:** The application shall detect a successful SSH authentication preceded by a configurable number of failed attempts from the same source IP within a configurable preceding time window.
-- **FR-26:** The initial default for the second rule shall be five preceding failures within five minutes.
-- **FR-27:** Detection shall use parsed event timestamps rather than relying solely on the order of lines in the file.
-- **FR-28:** Each alert shall identify the applicable rule and provide supporting information, such as the source IP, relevant timestamps, attempt count and reason for the alert, where available.
-- **FR-29:** The application shall describe alerts as potentially suspicious activity rather than confirmed compromises.
-- **FR-30:** Detection rules shall be organised so additional rules can be introduced without rewriting the entire application.
+- **FR-22:** The application shall detect repeated failed SSH authentication attempts from the same source IP address. done
+- **FR-23:** The initial default threshold shall be five or more failures within a five-minute window. done
+- **FR-24:** Failed attempts from different source IP addresses shall be evaluated separately. done
+- **FR-25:** The application shall detect a successful SSH authentication preceded by a configurable number of failed attempts from the same source IP within a configurable preceding time window. done
+- **FR-26:** The initial default for the second rule shall be five preceding failures within five minutes. done
+- **FR-27:** Detection shall use parsed event timestamps rather than relying solely on the order of lines in the file. done
+- **FR-28:** Each alert shall identify the applicable rule and provide supporting information, such as the source IP, relevant timestamps, attempt count and reason for the alert, where available. done
+- **FR-29:** The application shall describe alerts as potentially suspicious activity rather than confirmed compromises. done
+- **FR-30:** Detection rules shall be organised so additional rules can be introduced without rewriting the entire application. done 
 
 ### 2.5 Command-Line Interface
 
-- **FR-31:** The application shall provide instructions for using its commands.
-- **FR-32:** The application shall support analysis of a supplied log file.
-- **FR-33:** The application shall display a summary of the analysis.
-- **FR-34:** The application shall display generated alerts and their supporting details.
-- **FR-35:** The application shall generate a PDF report at a specified output location.
+- **FR-31:** The application shall provide instructions for using its commands. done
+- **FR-32:** The application shall support analysis of a supplied log file. done
+- **FR-33:** The application shall display a summary of the analysis. done
+- **FR-34:** The application shall display generated alerts and their supporting details. done
+- **FR-35:** The application shall generate a PDF report at a specified output location. done
 - **FR-36:** The application should provide information about available detection rules and active configuration settings if time permits.
 
 ### 2.6 PDF Reporting
 
-- **FR-37:** The application shall generate a structured PDF report from the analysis results.
-- **FR-38:** The report shall include the input filename and the time at which the analysis was performed.
-- **FR-39:** The report shall include summary statistics and the number of alerts generated.
-- **FR-40:** The report shall include an alert table containing relevant details, such as the rule name, source IP, timestamp, severity if implemented, and explanation.
-- **FR-41:** The report shall identify malformed or unrecognised entries where applicable.
-- **FR-42:** The report should include the effective detection thresholds and time windows used for the analysis.
-- **FR-43:** The report shall explain the tool's limitations and clarify that alerts are not proof of malicious activity.
-- **FR-44:** The application shall report errors encountered while creating or saving the PDF.
-- **FR-45:** PDF generation shall be separated from log parsing and detection logic.
+- **FR-37:** The application shall generate a structured PDF report from the analysis results. done
+- **FR-38:** The report shall include the input filename and the time at which the analysis was performed. done
+- **FR-39:** The report shall include summary statistics and the number of alerts generated. done
+- **FR-40:** The report shall include an alert table containing relevant details, such as the rule name, source IP, timestamp, severity if implemented, and explanation. done
+- **FR-41:** The report shall identify malformed or unrecognised entries where applicable.  x
+- **FR-42:** The report should include the effective detection thresholds and time windows used for the analysis. x
+- **FR-43:** The report shall explain the tool's limitations and clarify that alerts are not proof of malicious activity. not done yet
+- **FR-44:** The application shall report errors encountered while creating or saving the PDF. done
+- **FR-45:** PDF generation shall be separated from log parsing and detection logic. done
 
 ### 2.7 Testing
 
@@ -130,7 +130,7 @@ Git shall be used to track development. Commits should represent meaningful chan
 - The initial default threshold for each rule will be five failures within five minutes.
 - Users will be able to change thresholds and time windows in `config.properties`.
 - The policy for missing or invalid configuration will be explicitly documented and tested.
-- A PDF library will be selected after reviewing its suitability and licensing requirements.
+- A PDF library will be selected after reviewing its suitability and licensing requirements. 
 - Development time is limited, so optional features must not compromise the core parser, detection rules, tests or report generation.
 
 ## 5. Out of Scope

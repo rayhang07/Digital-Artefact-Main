@@ -14,6 +14,7 @@ public class CommandHandler {
     // Create an instance of the CommandAnalysis class to handle the analysis of log files
     private final CommandAnalysis commandAnalysis; 
     private final CommandAlerts commandAlerts;
+    private final CommandReport commandReport;
    
     
     // Constructor for the CommandHandler class, to initialise the CommandAnalysis object. 
@@ -21,6 +22,7 @@ public class CommandHandler {
       
         this.commandAnalysis = new CommandAnalysis();
         this.commandAlerts = new CommandAlerts();
+        this.commandReport = new CommandReport(this.commandAlerts);
         
     }
 
@@ -28,6 +30,8 @@ public class CommandHandler {
     public CommandHandler(CommandAnalysis commandAnalysis, CommandAlerts commandAlerts) {
         this.commandAnalysis = commandAnalysis;
         this.commandAlerts = commandAlerts;
+        this.commandReport = new CommandReport(this.commandAlerts);
+
     }
     // Method to run the command line interface, this will be called from the main method in the Main class (as the entry point of the application). This is justified as the main method is the entry point of the application and is responsible for initialising and starting the command line interface. By calling the run method from the main method, we ensure that the command line interface is started when the application is executed to actually gain user input and process commands. It is also a good practice to separate the command line interface logic from the main method, as it improves code organization and maintainability.
     public void runCli() {
@@ -71,7 +75,7 @@ public class CommandHandler {
                 commandAnalysis.handleAnalysis(cliScanner, commandAlerts);
                 break;
             case "loganalyser --report":
-                //handleReport();
+                commandReport.handleReport(cliScanner);
                 break;
             case "loganalyser --config":
                 //handleConfig();
@@ -98,13 +102,14 @@ public class CommandHandler {
         System.out.println("  \\___ \\ |  __|| |    | |  | |  _  /  | |    | |     > <");
         System.out.println("  ____) || |___| |____| |__| | | \\ \\ _| |_   | |    / . \\");
         System.out.println(" |_____/ |______\\_____\\____/ |_|  \\_\\_____|  |_|   /_/ \\_\\");
+        System.out.println();
         System.out.println("============================================================");
         System.out.println("                  SECURITY LOG ANALYSER");
         System.out.println("============================================================");
         System.out.println();
         System.out.println("                SSH Authentication Analysis");
         System.out.println(RESET);
-        System.out.println( GREEN + "Welcome to the Log Analyser Application! \n" + "Type loganalyser --help to see all commands available \n" + "Type loganalyser --exit to exit the application" + RESET);
+        System.out.println( GREEN + "Welcome to the Log Analyser tool! \n" + "Type loganalyser --help to see all commands available \n" + "Type loganalyser --exit to exit\n" + RESET);
     }  
 
     // Method to display all commands that are available

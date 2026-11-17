@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.loganalyser.model.Alert;
-import com.example.loganalyser.reporting.AlertFormatter;
+import com.example.loganalyser.reporting.CliAlertFormatter;
 
 
 // Class to store all alerts and display alerts that are linked to the current analysis
@@ -21,7 +21,7 @@ public class CommandAlerts {
 
             // If the alert is not already stored in the list add it, this is to prevent duplicate alerts
             if (!alerts.contains(alert)) {
-                alerts.add(alert);
+                alerts.add(alert);  
             }
         }
     }
@@ -36,11 +36,11 @@ public class CommandAlerts {
         }
 
         // If not empty instantiate the alertformatter class 
-        AlertFormatter alertFormatter = new AlertFormatter();
+        CliAlertFormatter alertFormatter = new CliAlertFormatter();
 
         // Loop through all alerts and use the formatter to format them to display to the user
         for (Alert alert : alerts) {
-            alertFormatter.formatAlert(alert);
+            System.out.println(alertFormatter.formatAlert(alert));
         }
     }
 
@@ -53,11 +53,15 @@ public class CommandAlerts {
             return;
         }
         // If not empty instantiate the alertformatter class 
-        AlertFormatter alertFormatter = new AlertFormatter();
+        CliAlertFormatter alertFormatter = new CliAlertFormatter();
 
         // Loop through all alerts and use the formatter to format them to display to the user        
         for (Alert alert : alerts) {
-            alertFormatter.formatAlert(alert);
+            System.out.println(alertFormatter.formatAlert(alert));
         }
+    }
+
+    public List<Alert> getAlerts() {
+        return alerts;
     }
 }
