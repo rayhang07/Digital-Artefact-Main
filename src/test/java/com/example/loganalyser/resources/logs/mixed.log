@@ -1,0 +1,6 @@
+Nov 06 09:15:22 server sshd[1234]: Accepted password for admin from 192.168.0.10 port 54321 ssh2
+Nov 06 09:16:35 server sshd[1235]: Failed password for root from 192.168.0.15 port 54322 ssh2
+Nov 06 09:18:42 server sshd[1236]: Disconnected from user admin 192.168.0.10 port 54321
+Nov 06 09:20:11 server kernel: USB device connected
+Nov 06 09:22:30 server sshd[1237]: Failed password for admin
+Nov 06 09:20:11 server sshd[1237]: Server listening on 0.0.0.0 port 22

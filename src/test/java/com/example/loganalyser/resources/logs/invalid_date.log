@@ -1,0 +1,2 @@
+Feb 30 12:00:00 server sshd[2001]: Failed password for alice from 192.168.1.10 port 54321 ssh2
+12:00:00 server sshd[2002]: Failed password for alice from 192.168.1.10 port 54321 ssh2

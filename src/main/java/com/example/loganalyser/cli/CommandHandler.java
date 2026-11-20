@@ -1,0 +1,134 @@
+// package declaration for the CommandHandler class, which is part of the com.example.loganalyser.cli package
+package com.example.loganalyser.cli;
+import java.util.Scanner;
+
+public class CommandHandler {
+    
+    // ANSI escape codes for colours stored . It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified.
+    private static final String CYAN = "\u001B[36m";
+    private static final String GREEN = "\u001B[32m";
+
+    // ANSI escape code to reset the colour back to default. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
+    private static final String RESET = "\u001B[0m";
+
+    // Create an instance of the CommandAnalysis class to handle the analysis of log files
+    private final CommandAnalysis commandAnalysis; 
+    private final CommandAlerts commandAlerts;
+    private final CommandReport commandReport;
+   
+    
+    // Constructor for the CommandHandler class, to initialise the CommandAnalysis object. 
+    public CommandHandler() {
+      
+        this.commandAnalysis = new CommandAnalysis();
+        this.commandAlerts = new CommandAlerts();
+        this.commandReport = new CommandReport(this.commandAlerts);
+        
+    }
+
+    // Constructor for the CommandHandler class, to initialise the CommandAnalysis object with a specific instance. This has been justified as it allows for dependency injection to ensure that there is minimal coupling but also to allow for easier testing of the methods. The constructor overloading is also justified as it allows for flexibility in creating an object that can be used in testing by passing a mock object of the CommandAnalysis class.
+    public CommandHandler(CommandAnalysis commandAnalysis, CommandAlerts commandAlerts) {
+        this.commandAnalysis = commandAnalysis;
+        this.commandAlerts = commandAlerts;
+        this.commandReport = new CommandReport(this.commandAlerts);
+
+    }
+    // Method to run the command line interface, this will be called from the main method in the Main class (as the entry point of the application). This is justified as the main method is the entry point of the application and is responsible for initialising and starting the command line interface. By calling the run method from the main method, we ensure that the command line interface is started when the application is executed to actually gain user input and process commands. It is also a good practice to separate the command line interface logic from the main method, as it improves code organization and maintainability.
+    public void runCli() {
+
+        // Display the welcome banner when the application starts
+        displayWelcomeBanner();
+        Scanner cliScanner = new Scanner(System.in);
+
+        // Initialise an empty variable as a string to store user inputs/commands
+        String command = "";
+
+        // Loop to continuously prompt the user for commands until the "exit" command is entered. It also handles empty inputs. A do while is used over a normal while to allow it to run at least once to display the prompt and get user input before checking the condition. This is justified as it ensures that the user is prompted for input at least once, even if they enter "exit" immediately. It also allows for a more interactive user experience, as the user can see the prompt and enter commands without having to wait for a separate prompt.
+        do {
+            // Display the command prompt in green color, indicating that the application is ready to accept user input
+            System.out.print(GREEN + "loganalyser> " + RESET);
+
+            // Read the user input from the command line, convert it to lowercase to facilitate command handling even if the user enters it in different cases, and store it in the command variable.
+            command = cliScanner.nextLine().trim().toLowerCase();
+
+            // Handle the user command by calling the handleCommand method, which processes the command and performs the corresponding action based on corresponding case in the switch statement. This is justified as it allows for a modular and organized approach to command handling, making it easier to add or modify commands in the future.
+            handleCommand(command, cliScanner);
+        } while (command == null || !command.equals("loganalyser --exit"));
+        
+
+        
+        // Close the scanner to release resources and prevent resource leaks. This is justified as it is a good practice to close resources when they are no longer needed, especially for input streams like Scanner, to free up system resources and avoid potential memory leaks.
+       
+
+    }
+
+    // Method to handle the user command by using a switch statement to determine the appropriate action based on the command entered. A switch statement is used over if else statements as commands are direct and correspond directly to cases, any unfamiliar cases can be handled via the default block. This is used to handle different commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as each command can be handled in its own case block.
+    private void handleCommand(String command, Scanner cliScanner) {
+        switch (command) {
+            case "loganalyser --help":
+                displayHelp();
+                break;
+            case "loganalyser --exit":
+                System.out.println(GREEN + "Exiting..." + RESET);
+                break;
+            case "loganalyser --analyse":
+                commandAnalysis.handleAnalysis(cliScanner, commandAlerts);
+                break;
+            case "loganalyser --report":
+                commandReport.handleReport(cliScanner);
+                break;
+            case "loganalyser --config":
+                //handleConfig();
+                break;
+            case "loganalyser --version":
+                displayVersion();
+                break; 
+            case "loganalyser --alerts":
+                commandAlerts.handleAlerts();
+                break;
+            case "loganalyser --summary":
+                //handleSummary();
+                break;
+            default:
+                System.out.println("Invalid command. Use the command loganalyser --help to see all commands available.");
+        }
+    }
+    private void displayWelcomeBanner() {
+    // Display a welcome banner with the application name and description, using ANSI escape codes for color formatting. This is justified as it provides a visually appealing introduction to the application, enhancing the user experience and making it clear what the application does. The use of color formatting helps to draw attention to important information and improve readability.
+        System.out.println(CYAN);
+        System.out.println("   _____  ______ _____ _    _ _____  _____ _______ __   __");
+        System.out.println("  / ____||  ____/ ____| |  | |  __ \\|_   _|__   __|\\ \\ / /");
+        System.out.println(" | (___  | |__ | |    | |  | | |__) | | |    | |    \\ V /");
+        System.out.println("  \\___ \\ |  __|| |    | |  | |  _  /  | |    | |     > <");
+        System.out.println("  ____) || |___| |____| |__| | | \\ \\ _| |_   | |    / . \\");
+        System.out.println(" |_____/ |______\\_____\\____/ |_|  \\_\\_____|  |_|   /_/ \\_\\");
+        System.out.println();
+        System.out.println("============================================================");
+        System.out.println("                  SECURITY LOG ANALYSER");
+        System.out.println("============================================================");
+        System.out.println();
+        System.out.println("                SSH Authentication Analysis");
+        System.out.println(RESET);
+        System.out.println( GREEN + "Welcome to the Log Analyser tool! \n" + "Type loganalyser --help to see all commands available \n" + "Type loganalyser --exit to exit\n" + RESET);
+    }  
+
+    // Method to display all commands that are available
+    private void displayHelp() {
+        System.out.println();
+        System.out.println("Available commands:");
+        System.out.println("loganalyser --help    - Display available commands");
+        System.out.println("loganalyser --exit    - Exit the application");
+        System.out.println("loganalyser --analyse - Analyse a log file");
+        System.out.println("loganalyser --report  - Generate an analysis report");
+        System.out.println("loganalyser --config  - View or change configuration");
+        System.out.println("loganalyser --version - Display application version");
+        System.out.println("loganalyser --alerts  - Display detected alerts");
+        System.out.println("loganalyser --summary - Display analysis summary");
+    }
+    // Method to display the current version of this tool
+    private void displayVersion() {
+        System.out.println();
+        System.out.println("Log Analyser Version: 1.0.0");
+
+    }   
+}
