@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ appmod/java-upgrade-20261028133824 ]
+    branches: [ dev ]
   pull_request:
     branches: [ main ]
 
