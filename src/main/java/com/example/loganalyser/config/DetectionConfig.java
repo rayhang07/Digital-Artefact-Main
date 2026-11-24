@@ -20,6 +20,8 @@ public class DetectionConfig {
         this.ipFailureThreshold = ipFailureThreshold;
         this.timeFailureThreshold = timeFailureThreshold;
     }
+    
+  
 
     // Getters to retrieve thresholds
     public int getIpFailureThreshold () {
@@ -30,7 +32,7 @@ public class DetectionConfig {
         return timeFailureThreshold;
     }
 
-    // Provides default thresholds so the detection engine can operate without user configuration.
+    // Provides default thresholds so the detection engine can operate without user configuration, this provides a default config which is loaded on start and can be altered later.
     public DetectionConfig() {
         this(5, 5);
     }

@@ -10,8 +10,8 @@ import com.example.loganalyser.model.Alert;
 import com.example.loganalyser.model.DetectionRuleType;
 import com.example.loganalyser.model.LogEntry;
 
-    //This class provides a common structure and shared functionality for all detection rules. The justification for making it abstract is to enforce a consistent structure while requiring each subclass to implement its own detection logic. This is justified is because it provides the basis and shared functionality of the rules while each subclass can provide the specific detection logic for each rule 
-    public abstract class DetectionRule {
+//This class provides a common structure and shared functionality for all detection rules. The justification for making it abstract is to enforce a consistent structure while requiring each subclass to implement its own detection logic. This is justified is because it provides the basis and shared functionality of the rules while each subclass can provide the specific detection logic for each rule 
+public abstract class DetectionRule {
 
     // Stores the rule type, rule name and description to provide context about the suspicious activity being detected. These are stored as private attributes so that they cannot be altered by other classes to encapsulate the fields
     private final DetectionRuleType ruleType;

@@ -85,6 +85,41 @@ public class CommandHandlerTest {
     }
 
     @Test 
+    public void testAlertsCommandWhenAlertsExist() {
+        String input = "loganalyser --analyse\nsrc/test/java/com/example/loganalyser/resources/logs/command_alerts_test.log\nloganalyser --alerts\nloganalyser --exit\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("                     SECURITY ALERT\n"));
+
+    }
+
+    @Test 
+    public void testAlertsCommandWhenNoAlertsExist() {
+        String input = "loganalyser --alerts\nloganalyser --exit\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("No alerts available."));
+    }
+
+    @Test 
+    public void testReportCommand() {
+        String input = "loganalyser --analyse\nsrc/test/java/com/example/loganalyser/resources/logs/command_alerts_test.log\nloganalyser --report\n\nloganalyser --exit\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        commandHandler.runCli();
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Please enter the directory to save the report:"));
+    }
+
+    
+    @Test 
     public void testValidCapitalLettersCommand() {
         String input = "loganalyser --VERSION \nLOGANALYSER --EXIT\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
@@ -94,6 +129,7 @@ public class CommandHandlerTest {
         String output = outputStream.toString();
         assertTrue(output.contains("Log Analyser Version:"));
     }
+
 
     @Test 
     public void testInvalidCapitalLettersCommand() {
