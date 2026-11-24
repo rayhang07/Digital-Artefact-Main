@@ -28,8 +28,8 @@ public class CommandAnalysisTest {
     @BeforeEach 
     public void setUp() {
         System.setOut(new PrintStream(outputStream));
-        commandAlerts = new CommandAlerts();
         commandConfig = new CommandConfig();
+        commandAlerts = new CommandAlerts();
         commandSummary = new CommandSummary(commandAlerts);
         commandAnalysis = new CommandAnalysis(commandConfig, commandSummary);
 
