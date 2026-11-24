@@ -28,8 +28,10 @@ public class CommandAnalysisTest {
     @BeforeEach 
     public void setUp() {
         System.setOut(new PrintStream(outputStream));
-        commandAnalysis = new CommandAnalysis(commandConfig, commandSummary);
         commandAlerts = new CommandAlerts();
+        commandConfig = new CommandConfig();
+        commandSummary = new CommandSummary(commandAlerts);
+        commandAnalysis = new CommandAnalysis(commandConfig, commandSummary);
 
     }
 
@@ -49,11 +51,11 @@ public class CommandAnalysisTest {
 
     @Test
     public void testHandleAnalysisWithValidPath() {
-        // Assuming you have a valid log file at this path for testing
         Scanner scanner = new Scanner("src/test/java/com/example/loganalyser/resources/logs/sample.log\n");
         commandAnalysis.handleAnalysis(scanner, commandAlerts);
 
         String output = outputStream.toString();
+        System.out.println(output);
         assertTrue(output.contains("Analysing log file at: "));
         assertTrue(output.contains("Recognised entries:"));
         assertTrue(output.contains("Malformed entries:"));
@@ -67,8 +69,9 @@ public class CommandAnalysisTest {
         commandAnalysis.handleAnalysis(scanner, commandAlerts);
 
         String output = outputStream.toString();
+        System.out.println(output);
         assertTrue(output.contains("Analysing log file at: "));
-        assertTrue(output.contains("Recognised entries:"));
+        assertTrue(output.contains("Recognised entries: "));
         assertTrue(output.contains("Malformed entries:"));
         assertTrue(output.contains("Unrecognised entries:"));
     }
