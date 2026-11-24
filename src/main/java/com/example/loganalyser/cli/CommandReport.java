@@ -2,7 +2,6 @@ package com.example.loganalyser.cli;
 
 //import necessary packages
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -56,7 +55,7 @@ public class CommandReport {
             
             // Catch any IOException and IllegalStateExceptions and output an error message containing the exception to provide the user with correct feedback
             catch (IOException | IllegalStateException e) {
-                System.out.println("Unable to generate pdf - "+e.getMessage());
+                System.out.println("Unable to generate pdf at "+e.getMessage());
             }
             
             
@@ -67,7 +66,7 @@ public class CommandReport {
     private boolean verifyReportPath(String reportFilePath) {
         // Check if the report file path exclusively starts or ends with a quote, if so print an error message and return false. This allows for handling user input that may contain quotes, which can cause issues when trying to access the log file.
         if (reportFilePath.startsWith("\"") ^ reportFilePath.endsWith("\"")) {
-            System.out.println("Error: Mismatched quotes in the log file path.");
+            System.out.println("Error: Mismatched quotes in the report file path.");
             return false;
         }
 
@@ -75,20 +74,16 @@ public class CommandReport {
         else if (reportFilePath.startsWith("\"") && reportFilePath.endsWith("\"")) {
             reportFilePath = reportFilePath.substring(1, reportFilePath.length() - 1);
         }
-
-        // Create a Path object from the log file path
-        Path path = Paths.get(reportFilePath);
-
-        // Check if the report file path is empty, if so print an error message and return false. This allows for handling user input that may be empty, which can cause issues when trying to access the log file.
-        if(reportFilePath.isEmpty()) {
-            System.out.println("Error: No log file path provided.");
+        
+        if(reportFilePath == null || reportFilePath.isEmpty()) {
+            System.out.println("Error: No report file path provided.");
             return false;
         }
-
-        // Create a path object to the parent directory 
-        Path parentDirectory = path.getParent();
+        // Create a Path object from the log file path
+        Path path = Paths.get(reportFilePath);        
+        return true;
+       
         
-        // Returns true if the parent directory exists. This is done so that the file can be stored in a location that actually exists on the users device
-        return Files.isDirectory(parentDirectory);
+      
     }
 }

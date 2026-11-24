@@ -20,6 +20,15 @@ public class CommandAnalysis {
     private static final String RESET = "\u001B[0m";
     // Method to handle the analysis command, this will be called from the runCli method in the CommandHandler class. This is justified as it allows for a modular and organized approach to handling user commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as the command handling logic is separated from the main method.
     
+    private final CommandConfig commandConfig;
+    private final CommandSummary commandSummary;
+
+
+    public CommandAnalysis(CommandConfig commandConfig, CommandSummary commandSummary) {
+        this.commandConfig = commandConfig;
+        this.commandSummary = commandSummary;
+    }
+
     // Method to handle the analysis command
     public void handleAnalysis(Scanner cliScanner, CommandAlerts commandAlerts) {
         System.out.println();
@@ -38,7 +47,8 @@ public class CommandAnalysis {
         LogParser logParser = new LogParser();
         ParseResult parseResult;
         try {
-             parseResult = logParser.parseLogFile(logPath);
+            parseResult = logParser.parseLogFile(logPath);
+            commandSummary.updateSummary(parseResult);
 
         } 
         catch (Exception e) {
@@ -46,8 +56,8 @@ public class CommandAnalysis {
             return;
         }
 
-        // Instantiate the config and engine in order to determine if thresholds for alerts have been triggered
-        DetectionConfig detectionConfig = new DetectionConfig();
+        DetectionConfig detectionConfig = commandConfig.getDetectionConfig();
+
         DetectionEngine detectionEngine = new DetectionEngine(detectionConfig);
         // Using the detect method, create a list of any alerts and then add it to the list of all alerts
         List<Alert> alerts = detectionEngine.detect(parseResult.getLogEntries());
@@ -55,6 +65,8 @@ public class CommandAnalysis {
         // Run the complete method to display the outcomes and then display the relevant alerts for this specific analysis
         analysisComplete(parseResult.getLogEntries().size(), parseResult.getMalformedEntries().size(), parseResult.getUnrecognisedEntries().size(), parseResult.getOtherSSHEntries().size(), alerts);
         commandAlerts.displayAlerts(alerts);
+
+
 
        
         

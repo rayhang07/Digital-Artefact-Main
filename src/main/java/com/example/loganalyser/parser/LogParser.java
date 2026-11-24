@@ -230,7 +230,7 @@ public class LogParser {
 
             // Create a DateTimeFormatter to parse the month and day into a MonthDay object, using the pattern "MMM-dd" and the Locale.ENGLISH to ensure that the month is parsed correctly regardless of the system's default locale. This allows for handling log entries that may be in different formats or locales, which can cause issues when trying to access the log file.
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM-dd", Locale.ENGLISH);
-            MonthDay logDate = MonthDay.parse(month + "-" + day, DateTimeFormatter.ofPattern("MMM-dd", Locale.ENGLISH));
+            MonthDay logDate = MonthDay.parse(month + "-" + day, dateFormatter);
 
             // Return the extracted MonthDay object representing the date of the log entry. This allows for returning the results of the extraction operation in a structured and organised manner, which can be useful for analysis and reporting purposes.
             return logDate;

@@ -27,17 +27,18 @@ public class PdfAlertFormatter {
     // Method to format the pdf taking the list of alerts, and the the path to the directory. Throws an IOException which is caught during generation for proper error handling
     public void formatPdf(List<Alert> alerts, Path pathToDirectory) throws IOException {
 
+        String fileName = "SecurityReport-" + LocalDate.now() + ".pdf";
 
         // Checks that if the provided list of alerts is empty and will therefore throw an error to the user. This ensures that a user cannot generate a blank report and can only generate reports from security alerts
-        if (alerts.isEmpty() || alerts == null ) {
-            throw new IllegalStateException("Cannot generate a report because no alerts were detected.");
+        if (alerts == null || alerts.isEmpty() ) {
+            throw new IllegalStateException(pathToDirectory +"\\"+ fileName +" (Cannot generate a report because no alerts were detected)");
         } 
 
         // Instantiate a new document object 
         Document document = new Document();
 
         // Declare the initial base report name  
-        String fileName = "SecurityReport-" + LocalDate.now() + ".pdf";
+        
 
         // A counter to is used to ensure we do not create files that have the exact same name as this causes them to become overriden
         int counter = 0;
