@@ -15,15 +15,17 @@ public class CommandHandler {
     private final CommandAnalysis commandAnalysis; 
     private final CommandAlerts commandAlerts;
     private final CommandReport commandReport;
-   
+    private final CommandConfig commandConfig;
+    private final CommandSummary commandSummary;
     
     // Constructor for the CommandHandler class, to initialise the CommandAnalysis object. 
     public CommandHandler() {
-      
-        this.commandAnalysis = new CommandAnalysis();
+
         this.commandAlerts = new CommandAlerts();
         this.commandReport = new CommandReport(this.commandAlerts);
-        
+        this.commandConfig = new CommandConfig();
+        this.commandSummary = new CommandSummary(commandAlerts);
+        this.commandAnalysis = new CommandAnalysis(commandConfig,commandSummary);
     }
 
     // Constructor for the CommandHandler class, to initialise the CommandAnalysis object with a specific instance. This has been justified as it allows for dependency injection to ensure that there is minimal coupling but also to allow for easier testing of the methods. The constructor overloading is also justified as it allows for flexibility in creating an object that can be used in testing by passing a mock object of the CommandAnalysis class.
@@ -31,6 +33,8 @@ public class CommandHandler {
         this.commandAnalysis = commandAnalysis;
         this.commandAlerts = commandAlerts;
         this.commandReport = new CommandReport(this.commandAlerts);
+        this.commandConfig = new CommandConfig();
+        this.commandSummary = new CommandSummary(commandAlerts);
 
     }
     // Method to run the command line interface, this will be called from the main method in the Main class (as the entry point of the application). This is justified as the main method is the entry point of the application and is responsible for initialising and starting the command line interface. By calling the run method from the main method, we ensure that the command line interface is started when the application is executed to actually gain user input and process commands. It is also a good practice to separate the command line interface logic from the main method, as it improves code organization and maintainability.
@@ -78,7 +82,7 @@ public class CommandHandler {
                 commandReport.handleReport(cliScanner);
                 break;
             case "loganalyser --config":
-                //handleConfig();
+                commandConfig.handleConfig(cliScanner);
                 break;
             case "loganalyser --version":
                 displayVersion();
@@ -87,7 +91,7 @@ public class CommandHandler {
                 commandAlerts.handleAlerts();
                 break;
             case "loganalyser --summary":
-                //handleSummary();
+                commandSummary.handleSummary();
                 break;
             default:
                 System.out.println("Invalid command. Use the command loganalyser --help to see all commands available.");

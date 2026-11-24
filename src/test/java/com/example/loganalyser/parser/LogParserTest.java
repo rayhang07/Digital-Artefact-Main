@@ -564,7 +564,7 @@ public class LogParserTest {
         assertTrue(parseResult.getLogEntries().stream().filter(entry -> entry.getEventType() == EventType.SSH_LOGIN_FAILURE).count() == 3);
     }
     // Tests that the parser rejects SSH log entries with unrecognised event types.
-
+  
     @Test
     public void testParseLogFileWithUnrecognisedEventType() throws IOException {
         Path path = Path.of("src/test/java/com/example/loganalyser/resources/logs/invalid_event_type.log");

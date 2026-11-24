@@ -21,20 +21,21 @@ public class CommandAnalysisTest {
     private Scanner scanner;
     private CommandAlerts commandAlerts;
     private final PrintStream originalOut = System.out;
+    private CommandConfig commandConfig;
+    private CommandSummary commandSummary;
     
 
     @BeforeEach 
     public void setUp() {
         System.setOut(new PrintStream(outputStream));
-        commandAnalysis = new CommandAnalysis();
+        commandAnalysis = new CommandAnalysis(commandConfig, commandSummary);
         commandAlerts = new CommandAlerts();
 
     }
 
     @AfterEach
     public void tearDown() {
-        System.setOut(originalOut);
-        
+        System.setOut(originalOut);   
     } 
 
     @Test
