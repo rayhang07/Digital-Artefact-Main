@@ -107,8 +107,6 @@ Identify a successful SSH authentication preceded by repeated failed authenticat
 | Threshold | 5 or more preceding failures |
 | Time window | 5 minutes before the success |
 
-The threshold and time window are configurable independently of Rule 1.
-
 ### 4.3 Detection Logic
 
 1. Identify supported failed and successful SSH authentication events.
@@ -193,6 +191,6 @@ The following behaviours must be tested:
 
 ## 7. Implementation Status
 
-**Status: In requirements phase, moving to implementation**
+**Status: Implemented and tested**
 
-The rules, configurable settings, defaults and edge-case behaviour must be validated through implementation and automated tests. Any changes made during development should be reflected in this document.
+The rules, configurable settings, defaults and edge-case behaviour have been validated through implementation and automated tests. 
