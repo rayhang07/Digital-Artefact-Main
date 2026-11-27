@@ -1,4 +1,5 @@
 package com.example.loganalyser.detection;
+
 import java.time.LocalTime;
 import java.time.MonthDay;
 import java.util.ArrayList;
@@ -14,14 +15,13 @@ import com.example.loganalyser.model.Alert;
 import com.example.loganalyser.model.EventType;
 import com.example.loganalyser.model.LogEntry;
 
-
-
+// Unit tests for RepeatedFailureRule, covering failure thresholds, time windows, IP and username handling, successful logins and date boundaries.
+// Tests the detection of repeated failed SSH logins using controlled log entries and the default detection configuration.
 public class RepeatedFailureRuleTest {
 
     private DetectionConfig detectionConfig;
     private RepeatedFailureRule repeatedFailureRule;
-    private final String eventDetails =("Authentication method: password\n" +"Source port: 22\n" +"SSH protocol: ssh2");
-
+    private final String eventDetails = ("Authentication method: password\n" + "Source port: 22\n" + "SSH protocol: ssh2");
 
     @BeforeEach
     public void setUp() {
@@ -29,7 +29,7 @@ public class RepeatedFailureRuleTest {
         repeatedFailureRule = new RepeatedFailureRule(detectionConfig);
     }
 
-    // Detect five failed logins within the threshold.
+    // Unit test – Functional and threshold coverage: verifies that five failed logins within the configured time window generate an alert.
     @Test
     public void testDetectRepeatedFailedLoginsAtThreshold() {
 
@@ -47,7 +47,7 @@ public class RepeatedFailureRuleTest {
         assertEquals(5, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Do not detect an alert below the threshold.
+    // Unit test – Boundary and negative condition coverage: verifies that four failed logins below the threshold do not generate an alert.
     @Test
     public void testDetectRepeatedFailedLoginsBelowThreshold() {
 
@@ -63,7 +63,7 @@ public class RepeatedFailureRuleTest {
         assertTrue(alerts.isEmpty());
     }
 
-    // Detect multiple batches of failed logins above the threshold.
+    // Unit test – Functional and repeated-event coverage: verifies that ten failed logins generate two separate alerts, each containing five attempts.
     @Test
     public void testDetectRepeatedFailedLoginsAboveThreshold() {
 
@@ -80,7 +80,7 @@ public class RepeatedFailureRuleTest {
         assertEquals(5, alerts.get(1).getFailedAttemptCount());
     }
 
-    // Do not detect an alert when failures exceed the time window.
+    // Unit test – Time-window and negative condition coverage: verifies that five failed logins spread beyond the configured time window do not generate an alert.
     @Test
     public void testDetectRepeatedFailedLoginsOutsideTimeWindow() {
 
@@ -97,7 +97,7 @@ public class RepeatedFailureRuleTest {
         assertTrue(alerts.isEmpty());
     }
 
-    // Count failures from different IP addresses independently.
+    // Unit test – IP address isolation coverage: verifies that failures from different IP addresses are counted independently.
     @Test
     public void testDetectRepeatedFailedLoginsFromDifferentIps() {
 
@@ -119,7 +119,7 @@ public class RepeatedFailureRuleTest {
         assertEquals("192.168.0.50", alerts.get(0).getSourceIp());
     }
 
-    // Count failures from different usernames using the same IP address.
+    // Unit test – Username handling coverage: verifies that failures from different usernames sharing one IP address contribute to the same failure count.
     @Test
     public void testDetectRepeatedFailedLoginsWithDifferentUsernames() {
 
@@ -138,7 +138,7 @@ public class RepeatedFailureRuleTest {
         assertEquals("labadmin", alerts.get(0).getUsername());
     }
 
-    // Successful logins should not contribute to the failure threshold.
+    // Unit test – Event-type filtering coverage: verifies that a successful login does not count towards the failed-login threshold.
     @Test
     public void testDetectRepeatedFailedLoginsWithSuccessfulLogin() {
 
@@ -157,7 +157,7 @@ public class RepeatedFailureRuleTest {
         assertEquals(5, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Detect repeated failures spanning midnight.
+    // Unit test – Date and time boundary coverage: verifies that five failed logins spanning midnight are detected and that the alert records the final login's date and time.
     @Test
     public void testDetectRepeatedFailedLoginsAcrossMidnight() {
 
@@ -177,7 +177,7 @@ public class RepeatedFailureRuleTest {
         assertEquals(LocalTime.of(0, 2), alerts.get(0).getTime());
     }
 
-    // Detect repeated failures spanning New Year.
+    // Unit test – Date boundary coverage: verifies that five failed logins spanning New Year are detected and that the alert records the final login's date and time.
     @Test
     public void testDetectRepeatedFailedLoginsAcrossNewYear() {
 
@@ -197,7 +197,7 @@ public class RepeatedFailureRuleTest {
         assertEquals(LocalTime.of(0, 2), alerts.get(0).getTime());
     }
 
-    // Accept failures exactly at the five-minute time-window boundary.
+    // Unit test – Time-window boundary coverage: verifies that five failed logins spanning exactly five minutes are accepted by the configured time window.
     @Test
     public void testDetectRepeatedFailedLoginsAtExactTimeWindowBoundary() {
 
@@ -215,7 +215,7 @@ public class RepeatedFailureRuleTest {
         assertEquals(5, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Return no alerts when the input list is empty.
+    // Unit test – Edge-case coverage: verifies that an empty list of log entries produces no alerts.
     @Test
     public void testDetectWithEmptyLogEntries() {
 
@@ -225,42 +225,4 @@ public class RepeatedFailureRuleTest {
 
         assertTrue(alerts.isEmpty());
     }
-
-  
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

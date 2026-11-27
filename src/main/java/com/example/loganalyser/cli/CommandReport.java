@@ -14,7 +14,7 @@ import com.example.loganalyser.reporting.PdfAlertFormatter;
 
 public class CommandReport {
 
-    // Private 
+    // Private field to be able to access the alerts from the session to populate the report with alert information
     private final CommandAlerts commandAlerts;
     
     // Constructor to ensure that once instantiated the report object can access the existing Command Alerts class to be able to access the list of alerts that already exists instead of instantiating a new object that would have an empty list

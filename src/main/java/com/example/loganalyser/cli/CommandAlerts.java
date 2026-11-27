@@ -8,7 +8,7 @@ import com.example.loganalyser.model.Alert;
 import com.example.loganalyser.reporting.CliAlertFormatter;
 
 
-// Class to store all alerts and display alerts that are linked to the current analysis
+// Class to store all alerts and display alerts that are linked to the current analysis. This has been segmented from detection for modularity and strong seperation of duties between components of the applicatoin
 public class CommandAlerts {
     // List to store all alerts
     private final List<Alert> alerts = new ArrayList<>();
@@ -61,6 +61,7 @@ public class CommandAlerts {
         }
     }
 
+    // Getter to return the list of alerts so that they can be used when analysing or displaying alerts.
     public List<Alert> getAlerts() {
         return alerts;
     }

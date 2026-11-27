@@ -23,66 +23,83 @@ The application will analyse local log files rather than collect logs from remot
 
 ### 2.1 Input Handling
 
-- **FR-01:** The application shall accept a path to a supported authentication log file. done
-- **FR-02:** The application shall check whether the specified file can be accessed. done
-- **FR-03:** The application shall provide a clear error message when the file is missing, inaccessible or invalid. done
-- **FR-04:** The application shall handle empty input files without crashing. done
-- **FR-05:** The application shall not modify the original log file. done
+- **FR-01:** The application shall accept a path to a supported authentication log file. (met)
+- **FR-02:** The application shall check whether the specified file can be accessed. (met)
+- **FR-03:** The application shall provide a clear error message when the file is missing, inaccessible or invalid. (met)
+- **FR-04:** The application shall handle empty input files without crashing. (met)
+- **FR-05:** The application shall not modify the original log file. (met)
+
+These are documented by test cases TC-012 to TC-019
 
 ### 2.2 Log Parsing
 
-- **FR-06:** The application shall read the input file and process its entries. done
-- **FR-07:** The application shall identify supported failed and successful SSH authentication events. done
-- **FR-08:** The parser shall extract relevant fields where available, including timestamps, usernames, source IP addresses and event types. done
-- **FR-09:** The application shall distinguish recognised events from malformed or unsupported entries. done
-- **FR-10:** A malformed or unsupported entry shall not automatically be treated as a failed or successful login. done
-- **FR-11:** The application shall continue processing valid entries when individual lines cannot be parsed. done
-- **FR-12:** The analysis results shall include counts of processed, malformed and unrecognised entries where these can be determined. done
+- **FR-06:** The application shall read the input file and process its entries. (met)
+- **FR-07:** The application shall identify supported failed and successful SSH authentication events. (met)
+- **FR-08:** The parser shall extract relevant fields where available, including timestamps, usernames, source IP addresses and event types. (met)
+- **FR-09:** The application shall distinguish recognised events from malformed or unsupported entries. (met)
+- **FR-10:** A malformed or unsupported entry shall not automatically be treated as a failed or successful login. (met)
+- **FR-11:** The application shall continue processing valid entries when individual lines cannot be parsed. (met)
+- **FR-12:** The analysis results shall include counts of processed, malformed and unrecognised entries where these can be determined. (met)
+
+These are documented by test cases TC-020 to TC-075
 
 ### 2.3 Configuration
 
-- **FR-13:** The application shall load detection settings from a persistent configuration file named `config.properties`.
-- **FR-14:** The configuration file shall allow users to set the failed-login threshold and its time window.
-- **FR-15:** The configuration file shall allow users to set the threshold and time window for successful logins preceded by repeated failures.
-- **FR-16:** Users shall be able to change these settings without modifying or recompiling the Java source code.
-- **FR-17:** The application shall validate configuration values, including requiring thresholds and time windows to be positive integers.
-- **FR-18:** The application shall handle missing configuration files and invalid or missing settings predictably, using documented defaults or reporting a clear configuration error.
-- **FR-19:** The application shall make the active configuration visible to the user, such as through a CLI command or analysis summary.
-- **FR-20:** The application should record the effective thresholds and time windows in the PDF report so that results can be interpreted and reproduced.
-- **FR-21:** The application shall separate configuration loading and validation from detection logic.
+- **FR-13:** The application shall load detection settings from a persistent configuration file named `config.properties`. (not met, this           requirement has been deffered as it has been deemed acceptable to configure thresholds when using the application, the configuration loads a default on startup which can be changed)
+- **FR-14:** The configuration file shall allow users to set the failed-login threshold and its time window (met)
+- **FR-15:** The configuration file shall allow users to set the threshold and time window for successful logins preceded by repeated failures. (met, note req 14 and 15 have been merged so changing config is global to both rules)
+- **FR-16:** Users shall be able to change these settings without modifying or recompiling the Java source code. (met)
+- **FR-17:** The application shall validate configuration values, including requiring thresholds and time windows to be positive integers. (met)
+- **FR-18:** The application shall handle missing configuration files and invalid or missing settings predictably, using documented defaults or reporting a clear configuration error. (No config files have been utilised therefore this requirement is deffered, however the use of defaults is used)
+- **FR-19:** The application shall make the active configuration visible to the user, such as through a CLI command or analysis summary. (met)
+- **FR-20:** The application should record the effective thresholds and time windows in the PDF report so that results can be interpreted and reproduced. (not met, this has been defferred as it is not completely nececssary to include the config settings within a report, rather the rule that has been triggered is more important)
+- **FR-21:** The application shall separate configuration loading and validation from detection logic. (met)
+
+These are documented by test cases TC-116 to TC-127
+
+
 
 ### 2.4 Threat Detection
 
-- **FR-22:** The application shall detect repeated failed SSH authentication attempts from the same source IP address. done
-- **FR-23:** The initial default threshold shall be five or more failures within a five-minute window. done
-- **FR-24:** Failed attempts from different source IP addresses shall be evaluated separately. done
-- **FR-25:** The application shall detect a successful SSH authentication preceded by a configurable number of failed attempts from the same source IP within a configurable preceding time window. done
-- **FR-26:** The initial default for the second rule shall be five preceding failures within five minutes. done
-- **FR-27:** Detection shall use parsed event timestamps rather than relying solely on the order of lines in the file. done
-- **FR-28:** Each alert shall identify the applicable rule and provide supporting information, such as the source IP, relevant timestamps, attempt count and reason for the alert, where available. done
-- **FR-29:** The application shall describe alerts as potentially suspicious activity rather than confirmed compromises. done
-- **FR-30:** Detection rules shall be organised so additional rules can be introduced without rewriting the entire application. done 
+- **FR-22:** The application shall detect repeated failed SSH authentication attempts from the same source IP address. (met)
+- **FR-23:** The initial default threshold shall be five or more failures within a five-minute window. (met)
+- **FR-24:** Failed attempts from different source IP addresses shall be evaluated separately. (met)
+- **FR-25:** The application shall detect a successful SSH authentication preceded by a configurable number of failed attempts from the same source IP within a configurable preceding time window. (met)
+- **FR-26:** The initial default for the second rule shall be five preceding failures within five minutes. (met)
+- **FR-27:** Detection shall use parsed event timestamps rather than relying solely on the order of lines in the file. (met)
+- **FR-28:** Each alert shall identify the applicable rule and provide supporting information, such as the source IP, relevant timestamps, attempt count and reason for the alert, where available. (met)
+- **FR-29:** The application shall describe alerts as potentially suspicious activity rather than confirmed compromises. (met)
+- **FR-30:** Detection rules shall be organised so additional rules can be introduced without rewriting the entire application. (met) 
+
+These are documented by test cases TC-087 to TC-115
+
 
 ### 2.5 Command-Line Interface
 
-- **FR-31:** The application shall provide instructions for using its commands. done
-- **FR-32:** The application shall support analysis of a supplied log file. done
-- **FR-33:** The application shall display a summary of the analysis. done
-- **FR-34:** The application shall display generated alerts and their supporting details. done
-- **FR-35:** The application shall generate a PDF report at a specified output location. done
-- **FR-36:** The application should provide information about available detection rules and active configuration settings if time permits.
+- **FR-31:** The application shall provide instructions for using its commands. (met)
+- **FR-32:** The application shall support analysis of a supplied log file. (met)
+- **FR-33:** The application shall display a summary of the analysis. (met)
+- **FR-34:** The application shall display generated alerts and their supporting details. (met)
+- **FR-35:** The application shall generate a PDF report at a specified output location. (met)
+- **FR-36:** The application should provide information about available detection rules and active configuration settings if time permits. (met)
+
+These are documented by test cases TC-001 to TC-011
+
 
 ### 2.6 PDF Reporting
 
-- **FR-37:** The application shall generate a structured PDF report from the analysis results. done
-- **FR-38:** The report shall include the input filename and the time at which the analysis was performed. done
-- **FR-39:** The report shall include summary statistics and the number of alerts generated. done
-- **FR-40:** The report shall include an alert table containing relevant details, such as the rule name, source IP, timestamp, severity if implemented, and explanation. done
-- **FR-41:** The report shall identify malformed or unrecognised entries where applicable.  x
-- **FR-42:** The report should include the effective detection thresholds and time windows used for the analysis. x
-- **FR-43:** The report shall explain the tool's limitations and clarify that alerts are not proof of malicious activity. not done yet
-- **FR-44:** The application shall report errors encountered while creating or saving the PDF. done
-- **FR-45:** PDF generation shall be separated from log parsing and detection logic. done
+- **FR-37:** The application shall generate a structured PDF report from the analysis results. (met)
+- **FR-38:** The report shall include the input filename and the time at which the analysis was performed. (met)
+- **FR-39:** The report shall include summary statistics and the number of alerts generated. (met - note the report includes each indivdual alert not alert count)
+- **FR-40:** The report shall include an alert table containing relevant details, such as the rule name, source IP, timestamp, severity if implemented, and explanation. (met)
+- **FR-41:** The report shall identify malformed or unrecognised entries where applicable. (This has been differred as post analysis displays this while the report should be focused on the security alerts)
+- **FR-42:** The report should include the effective detection thresholds and time windows used for the analysis. (This has not been included)
+- **FR-43:** The report shall explain the tool's limitations and clarify that alerts are not proof of malicious activity. (Not included)
+- **FR-44:** The application shall report errors encountered while creating or saving the PDF. (met)
+- **FR-45:** PDF generation shall be separated from log parsing and detection logic. (met)
+
+These are documented by test cases TC-080 to TC-086
+
 
 ### 2.7 Testing
 
@@ -97,27 +114,29 @@ The application will analyse local log files rather than collect logs from remot
 - **FR-54:** Tests shall verify that changing a configuration value changes detection behaviour as expected.
 - **FR-55:** Tests shall cover out-of-order timestamps and duplicate alert behaviour once the implementation rules have been defined.
 
+Testing has been documented in the test case document, covering fundemental testing across requirements, unit, integration and e-2-e workflows.
+
 ## 3. Non-Functional Requirements
 
 ### 3.1 Reliability
 
-The application should handle expected input errors without terminating unexpectedly. Invalid entries should not prevent valid entries from being analysed. Invalid configuration must not silently result in unintended detection behaviour.
+The application should handle expected input errors without terminating unexpectedly. Invalid entries should not prevent valid entries from being analysed. Invalid configuration must not silently result in unintended detection behaviour. (Input validation has been implemented throughout all aspects of this application documented in the test case document)
 
 ### 3.2 Maintainability
 
-The application shall use clearly named classes, methods and packages as well as comments justifying choices. Parsing, configuration, detection, command-line interaction and report generation should have distinct responsibilities.
+The application shall use clearly named classes, methods and packages as well as comments justifying choices. Parsing, configuration, detection, command-line interaction and report generation should have distinct responsibilities. (This is demonstrated throughout the code structure and package management through maven wrapper)
 
 ### 3.3 Security
 
-The application shall treat log contents and configuration values as untrusted input. It shall not execute commands or interpret log entries as executable instructions. Development and testing shall use fictional or sanitised sample data.
+The application shall treat log contents and configuration values as untrusted input. It shall not execute commands or interpret log entries as executable instructions. Development and testing shall use fictional or sanitised sample data. (This has been met through testing the parser, utilising fictional raw log file data in the format of real ssh logs)
 
 ### 3.4 Usability
 
-The application shall provide understandable command-line output and actionable error messages. The PDF report shall organise findings so a reader can understand what was detected and why. The active configuration and its defaults shall be documented.
+The application shall provide understandable command-line output and actionable error messages. The PDF report shall organise findings so a reader can understand what was detected and why. The active configuration and its defaults shall be documented. (Error messages and user prompts are embedded in every action, the pdf organises findings in a clear and understandable way documenting the rule triggered, why it was triggered and related event details including origin ip, port and more, active configurations are viewable using config command and default is set to 5,5)
 
 ### 3.5 Version Control
 
-Git shall be used to track development. Commits should represent meaningful changes, and the repository should include a README explaining the project, setup, usage and limitations.
+Git shall be used to track development. Commits should represent meaningful changes, and the repository should include a README explaining the project, setup, usage and limitations. (Git has been used to track and commit changes, with GitHub for the remote repository)
 
 ## 4. Constraints and Assumptions
 
@@ -130,7 +149,7 @@ Git shall be used to track development. Commits should represent meaningful chan
 - The initial default threshold for each rule will be five failures within five minutes.
 - Users will be able to change thresholds and time windows in `config.properties`.
 - The policy for missing or invalid configuration will be explicitly documented and tested.
-- A PDF library will be selected after reviewing its suitability and licensing requirements. 
+- A PDF library will be selected after reviewing its suitability and licensing requirements. (was chosen to be open pdf) 
 - Development time is limited, so optional features must not compromise the core parser, detection rules, tests or report generation.
 
 ## 5. Out of Scope
@@ -152,21 +171,21 @@ Containerisation with Docker is a potential extension if the core application is
 
 The project will be considered complete when:
 
-1. The application builds successfully using Maven.
-2. A user can supply a supported authentication log file.
-3. Supported authentication events are parsed into structured data.
-4. Malformed and unrecognised entries are handled without crashing the application.
-5. The application loads and validates configuration settings.
-6. Users can change detection thresholds and time windows without changing Java source code.
-7. Missing or invalid configuration is handled according to the documented policy.
-8. Repeated failed logins are detected according to the active threshold and time window.
-9. Successful logins preceded by sufficient failures can trigger the second detection rule.
-10. Attempts from different source IP addresses are evaluated separately.
-11. The user can view an analysis summary and generated alerts.
-12. A structured PDF report can be generated and, where implemented, includes the effective configuration.
-13. Invalid input paths and report-generation errors produce understandable messages.
-14. Automated tests cover the main parsing, configuration and detection behaviours.
+1. The application builds successfully using Maven. (met)
+2. A user can supply a supported authentication log file. (met)
+3. Supported authentication events are parsed into structured data. (met)
+4. Malformed and unrecognised entries are handled without crashing the application. (met)
+5. The application loads and validates configuration settings. (met)
+6. Users can change detection thresholds and time windows without changing Java source code. (met)
+7. Missing or invalid configuration is handled according to the documented policy. (config was chosen to be stored within the application for the sake of user accessibility and any changes are validated)
+8. Repeated failed logins are detected according to the active threshold and time window. (met)
+9. Successful logins preceded by sufficient failures can trigger the second detection rule. (met)
+10. Attempts from different source IP addresses are evaluated separately. (met)
+11. The user can view an analysis summary and generated alerts. (met)
+12. A structured PDF report can be generated and, where implemented, includes the effective configuration. (met, configuration of reporting is not implemented)
+13. Invalid input paths and report-generation errors produce understandable messages. (met)
+14. Automated tests cover the main parsing, configuration and detection behaviours. (met)
 15. The README documents setup, configuration, commands, limitations and examples.
-16. The repository contains a meaningful development history and documentation that accurately reflects implemented features.
+16. The repository contains a meaningful development history and documentation that accurately reflects implemented features. (met)
 
 Requirements may be refined during development. Any changes to supported formats, configuration policy, thresholds or expected behaviour should be documented and reflected in the tests.

@@ -49,6 +49,7 @@ public class CommandHandler {
 
         // Loop to continuously prompt the user for commands until the "exit" command is entered. It also handles empty inputs. A do while is used over a normal while to allow it to run at least once to display the prompt and get user input before checking the condition. This is justified as it ensures that the user is prompted for input at least once, even if they enter "exit" immediately. It also allows for a more interactive user experience, as the user can see the prompt and enter commands without having to wait for a separate prompt.
         do {
+
             // Display the command prompt in green color, indicating that the application is ready to accept user input
             System.out.print(GREEN + "loganalyser> " + RESET);
 
@@ -57,46 +58,66 @@ public class CommandHandler {
 
             // Handle the user command by calling the handleCommand method, which processes the command and performs the corresponding action based on corresponding case in the switch statement. This is justified as it allows for a modular and organized approach to command handling, making it easier to add or modify commands in the future.
             handleCommand(command, cliScanner);
+
         } while (command == null || !command.equals("loganalyser --exit"));
         
-
         
         // Close the scanner to release resources and prevent resource leaks. This is justified as it is a good practice to close resources when they are no longer needed, especially for input streams like Scanner, to free up system resources and avoid potential memory leaks.
-       
+        cliScanner.close();
 
     }
 
     // Method to handle the user command by using a switch statement to determine the appropriate action based on the command entered. A switch statement is used over if else statements as commands are direct and correspond directly to cases, any unfamiliar cases can be handled via the default block. This is used to handle different commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as each command can be handled in its own case block.
     private void handleCommand(String command, Scanner cliScanner) {
         switch (command) {
+
+            // displays help (all available commands) when command is inputted
             case "loganalyser --help":
                 displayHelp();
                 break;
+
+            // displays the exiting message when the exit command is inputted, this ensures the user is aware of the operation occuring
             case "loganalyser --exit":
                 System.out.println(GREEN + "Exiting..." + RESET);
                 break;
+
+            // calls the analysis method to handle analysis
             case "loganalyser --analyse":
                 commandAnalysis.handleAnalysis(cliScanner, commandAlerts);
                 break;
+
+            // calls the handle report method to allow for report generation
             case "loganalyser --report":
                 commandReport.handleReport(cliScanner);
                 break;
+
+            // calls config method to allow for config to be viewed or updated
             case "loganalyser --config":
                 commandConfig.handleConfig(cliScanner);
                 break;
+
+            // displays the current version of the application
             case "loganalyser --version":
                 displayVersion();
                 break; 
+
+            // calls the handle alerts method to display any alerts to the user
             case "loganalyser --alerts":
                 commandAlerts.handleAlerts();
                 break;
+
+            // calls handle summary to display current session analytics
             case "loganalyser --summary":
                 commandSummary.handleSummary();
                 break;
+
+            // all other inputs are directed to the default block which prompts the user to use the help command to input a valid command
             default:
                 System.out.println("Invalid command. Use the command loganalyser --help to see all commands available.");
         }
     }
+
+    // method to display a welcome banner on start
     private void displayWelcomeBanner() {
     // Display a welcome banner with the application name and description, using ANSI escape codes for color formatting. This is justified as it provides a visually appealing introduction to the application, enhancing the user experience and making it clear what the application does. The use of color formatting helps to draw attention to important information and improve readability.
         System.out.println(CYAN);
@@ -127,7 +148,7 @@ public class CommandHandler {
         System.out.println("loganalyser --config  - View or change configuration");
         System.out.println("loganalyser --version - Display application version");
         System.out.println("loganalyser --alerts  - Display detected alerts");
-        System.out.println("loganalyser --summary - Display analysis summary");
+        System.out.println("loganalyser --summary - Display analytics for all analysis run in current session");
     }
     // Method to display the current version of this tool
     private void displayVersion() {

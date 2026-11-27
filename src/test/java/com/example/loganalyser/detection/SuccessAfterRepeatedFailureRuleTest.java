@@ -1,4 +1,3 @@
-
 package com.example.loganalyser.detection;
 
 import java.time.LocalTime;
@@ -16,12 +15,14 @@ import com.example.loganalyser.model.Alert;
 import com.example.loganalyser.model.EventType;
 import com.example.loganalyser.model.LogEntry;
 
+// Unit tests for SuccessAfterRepeatedFailureRule, covering failure thresholds, time windows, IP address isolation, counter resets and date boundaries.
+// Tests the detection of successful SSH logins following repeated failed attempts using controlled log entries and the default detection configuration.
 public class SuccessAfterRepeatedFailureRuleTest {
 
     private DetectionConfig detectionConfig;
     private SuccessAfterRepeatedFailureRule successAfterRepeatedFailureRule;
 
-    private final String eventDetails =( "Authentication method: password\n" + "Source port: 22\n" + "SSH protocol: ssh2");
+    private final String eventDetails = ("Authentication method: password\n" + "Source port: 22\n" + "SSH protocol: ssh2");
 
     @BeforeEach
     public void setUp() {
@@ -29,9 +30,9 @@ public class SuccessAfterRepeatedFailureRuleTest {
         successAfterRepeatedFailureRule = new SuccessAfterRepeatedFailureRule(detectionConfig);
     }
 
-    // Detect a successful login after five failed attempts.
+    // Unit test – Functional and threshold coverage: verifies that a successful login after five failed attempts generates an alert.
     @Test
-    public void testDetectSuccessfulLoginAfterFailureThreshold() {
+    public void testDetectSuccessfulLoginAtFailureThreshold() {
 
         List<LogEntry> logEntries = new ArrayList<>();
 
@@ -48,7 +49,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(5, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Do not detect a successful login below the failure threshold.
+    // Unit test – Boundary and negative condition coverage: verifies that a successful login after fewer than five failed attempts generates no alert.
     @Test
     public void testDetectSuccessfulLoginBelowFailureThreshold() {
 
@@ -65,7 +66,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertTrue(alerts.isEmpty());
     }
 
-    // Detect a successful login after more than five failed attempts.
+    // Unit test – Threshold coverage: verifies that more than five failed attempts followed by a successful login generate one alert containing all seven failures.
     @Test
     public void testDetectSuccessfulLoginAboveFailureThreshold() {
 
@@ -86,7 +87,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(7, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Do not detect a successful login outside the time window.
+    // Unit test – Time-window and negative condition coverage: verifies that a successful login outside the configured time window generates no alert.
     @Test
     public void testDetectSuccessfulLoginOutsideTimeWindow() {
 
@@ -104,7 +105,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertTrue(alerts.isEmpty());
     }
 
-    // Count failed attempts from different IP addresses independently.
+    // Unit test – IP address isolation: verifies that failures from different IP addresses are counted independently when evaluating a successful login.
     @Test
     public void testDetectSuccessfulLoginFromDifferentIps() {
 
@@ -128,7 +129,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals("192.168.0.50", alerts.get(0).getSourceIp());
     }
 
-    //Reset the failure counter after a successful login.
+    // Unit test – State and reset behaviour: verifies that a successful login resets the failure counter before subsequent failed attempts.
     @Test
     public void testDetectSuccessfulLoginResetsFailureCounter() {
 
@@ -152,7 +153,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(5, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Generate separate alerts for separate qualifying failure groups.
+    // Unit test – Multiple-event coverage: verifies that separate groups of qualifying failed attempts followed by successful logins generate separate alerts.
     @Test
     public void testDetectMultipleSuccessfulLoginsAfterFailures() {
 
@@ -178,7 +179,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(5, alerts.get(1).getFailedAttemptCount());
     }
 
-    // Detect failed logins over midnight followed by a successful login.
+    // Unit test – Date and time boundary coverage: verifies that failed attempts spanning midnight are detected when followed by a successful login.
     @Test
     public void testDetectSuccessfulLoginAcrossMidnight() {
 
@@ -199,7 +200,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(LocalTime.of(0, 3), alerts.get(0).getTime());
     }
 
-    // Detect failed logins over New Year followed by a successful login.
+    // Unit test – Date boundary coverage: verifies that failed attempts spanning New Year are detected when followed by a successful login.
     @Test
     public void testDetectSuccessfulLoginAcrossNewYear() {
 
@@ -220,7 +221,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(LocalTime.of(0, 3), alerts.get(0).getTime());
     }
 
-    // Accept a successful login exactly at the five minute boundary.
+    // Unit test – Time-window boundary coverage: verifies that a successful login exactly five minutes after the first failure is accepted.
     @Test
     public void testDetectSuccessfulLoginAtExactTimeWindowBoundary() {
 
@@ -239,7 +240,7 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertEquals(5, alerts.get(0).getFailedAttemptCount());
     }
 
-    // Return no alerts when the input list is empty.
+    // Unit test – Edge-case coverage: verifies that an empty log-entry list produces no alerts.
     @Test
     public void testDetectWithEmptyLogEntries() {
 
@@ -250,5 +251,4 @@ public class SuccessAfterRepeatedFailureRuleTest {
         assertTrue(alerts.isEmpty());
     }
 
-    
 }

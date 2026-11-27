@@ -1,230 +1,483 @@
-## Class Diagram
+Java Security Log Analyser — Class Diagram
 
+Application classes
 ```mermaid
 classDiagram
-    direction TB
+direction TB
 
-    %% ENTRY POINT AND CLI
-    class Main {
-        +main(args: String[]) void
-    }
+class Main {
+  +main(args: String[]) void
+}
 
-    class CommandHandler {
-        -scanner: Scanner
-        -commandParser: CommandLineParser
-        -configManager: ConfigManager
-        -logParser: LogParser
-        -detectionEngine: DetectionEngine
-        -reportWriter: ReportWriter
-        -appConfig: AppConfig
-        -lastAnalysis: AnalysisResult
-        +run() void
-        -handleCommand(input: String) void
-        -handleAnalyse(command: ParsedCommand) void
-        -handleConfig(command: ParsedCommand) void
-        -handleSummary() void
-        -handleAlerts() void
-        -handleReport(command: ParsedCommand) void
-        -showHelp() void
-    }
+class CommandAlerts {
+  -List~Alert~ alerts
+  +addAlerts(newAlerts: List~Alert~) void
+  +displayAlerts(alerts: List~Alert~) void
+  +handleAlerts() void
+  +getAlerts() List~Alert~
+}
 
-    class CommandLineParser {
-        +parse(input: String) ParsedCommand
-        -tokenize(input: String) String[]
-        -validateOptions(command: ParsedCommand) void
-    }
+class CommandAnalysis {
+  -String GREEN
+  -String RED
+  -String RESET
+  -CommandConfig commandConfig
+  -CommandSummary commandSummary
+  +CommandAnalysis(commandConfig: CommandConfig, commandSummary: CommandSummary)
+  +handleAnalysis(cliScanner: Scanner, commandAlerts: CommandAlerts) void
+  -verifyLogFilePath(logFilePath: String) boolean
+  -analysisComplete(logEntries: int, malformedEntries: int, unrecognisedEntries: int, otherSshEntries: int, alerts: List~Alert~) void
+}
 
-    class ParsedCommand {
-        -commandName: String
-        -options: Map~String,String~
-        +getCommandName() String
-        +getOption(name: String) String
-        +hasOption(name: String) boolean
-    }
+class CommandConfig {
+  -DetectionConfig detectionConfig
+  +handleConfig(cliScanner: Scanner) void
+  +updateIpConfig(cliScanner: Scanner) void
+  +updateTimeConfig(cliScanner: Scanner) void
+  +getDetectionConfig() DetectionConfig
+  +viewConfig() void
+}
 
-    Main --> CommandHandler : starts
-    CommandHandler *-- CommandLineParser : owns
-    CommandHandler --> ParsedCommand : receives
-    CommandLineParser ..> ParsedCommand : creates
+class CommandHandler {
+  -String CYAN
+  -String GREEN
+  -String RESET
+  -CommandAnalysis commandAnalysis
+  -CommandAlerts commandAlerts
+  -CommandReport commandReport
+  -CommandConfig commandConfig
+  -CommandSummary commandSummary
+  +CommandHandler()
+  +CommandHandler(commandAnalysis: CommandAnalysis, commandAlerts: CommandAlerts)
+  +runCli() void
+  -handleCommand(command: String, cliScanner: Scanner) void
+  -displayWelcomeBanner() void
+  -displayHelp() void
+  -displayVersion() void
+}
 
-    %% CONFIGURATION
-    class AppConfig {
-        -failedLoginThreshold: int
-        -failedLoginWindowMinutes: int
-        -successAfterFailuresThreshold: int
-        -successAfterFailuresWindowMinutes: int
-        +validate() void
-        +updateSetting(name: String, value: String) void
-        +getFailedLoginThreshold() int
-        +getFailedLoginWindowMinutes() int
-        +getSuccessAfterFailuresThreshold() int
-        +getSuccessAfterFailuresWindowMinutes() int
-    }
+class CommandReport {
+  -CommandAlerts commandAlerts
+  +CommandReport(commandAlerts: CommandAlerts)
+  +handleReport(cliScanner: Scanner) void
+  -verifyReportPath(reportFilePath: String) boolean
+}
 
-    class ConfigManager {
-        -configPath: Path
-        +load() AppConfig
-        +save(config: AppConfig) void
-    }
+class CommandSummary {
+  -int totalLogEntries
+  -int totalMalformedEntries
+  -int totalUnrecognisedEntries
+  -int totalOtherSSHEntries
+  -CommandAlerts commandAlerts
+  +CommandSummary(commandAlerts: CommandAlerts)
+  +handleSummary() void
+  +updateSummary(parseResult: ParseResult) void
+  -displaySummary() void
+}
 
-    CommandHandler --> ConfigManager : loads and saves
-    CommandHandler --> AppConfig : reads and updates
-    ConfigManager ..> AppConfig : creates and persists
+class DetectionConfig {
+  -int ipFailureThreshold
+  -int timeFailureThreshold
+  +DetectionConfig(ipFailureThreshold: int, timeFailureThreshold: int)
+  +DetectionConfig()
+  +getIpFailureThreshold() int
+  +getTimeFailureThreshold() int
+}
 
-    %% LOG PARSING AND DATA MODEL
-    class LogParser {
-        +parse(path: Path) ParseResult
-        -parseLine(line: String) Optional~LogEvent~
-        -isSupportedFormat(line: String) boolean
-    }
+class DetectionEngine {
+  -List~DetectionRule~ detectionRules
+  -DetectionConfig detectionConfig
+  +DetectionEngine(detectionConfig: DetectionConfig)
+  +detect(logEntries: List~LogEntry~) List~Alert~
+  -defaultRules() void
+  +getDetectionRules() List~DetectionRule~
+}
 
-    class ParseResult {
-        -events: List~LogEvent~
-        -malformedEntries: int
-        -unrecognisedEntries: int
-        +getEvents() List~LogEvent~
-        +getMalformedEntries() int
-        +getUnrecognisedEntries() int
-    }
+class DetectionRule {
+  <<abstract>>
+  -DetectionRuleType ruleType
+  -String ruleName
+  -String ruleDescription
+  +DetectionRule(ruleType: DetectionRuleType, ruleName: String, ruleDescription: String)
+  +getRuleType() DetectionRuleType
+  +getRuleName() String
+  +getRuleDescription() String
+  +detect(logEntries: List~LogEntry~) List~Alert~
+  #isWithinTimeWindow(firstDate: MonthDay, firstTime: LocalTime, lastDate: MonthDay, lastTime: LocalTime, timeThreshold: int) boolean
+  #createAlert(sourceIp: String, logEntry: LogEntry, failedAttemptCount: int) Alert
+}
 
-    class LogEvent {
-        -timestamp: LocalDateTime
-        -username: String
-        -sourceIp: String
-        -eventType: EventType
-        +getTimestamp() LocalDateTime
-        +getUsername() String
-        +getSourceIp() String
-        +getEventType() EventType
-    }
+class RepeatedFailureRule {
+  -DetectionConfig detectionConfig
+  +RepeatedFailureRule(detectionConfig: DetectionConfig)
+  +detect(logEntries: List~LogEntry~) List~Alert~
+}
 
-    class EventType {
-        <<enumeration>>
-        FAILED_LOGIN
-        SUCCESSFUL_LOGIN
-    }
+class SuccessAfterRepeatedFailureRule {
+  -DetectionConfig detectionConfig
+  +SuccessAfterRepeatedFailureRule(detectionConfig: DetectionConfig)
+  +detect(logEntries: List~LogEntry~) List~Alert~
+}
 
-    CommandHandler --> LogParser : requests parsing
-    LogParser ..> ParseResult : returns
-    ParseResult "1" *-- "0..*" LogEvent : contains
-    LogEvent --> EventType : classifies event
+class Alert {
+  -DetectionRuleType ruleType
+  -String ruleName
+  -String sourceIp
+  -String ruleDescription
+  -int failedAttemptCount
+  -String username
+  -MonthDay date
+  -LocalTime time
+  -String eventDetails
+  +Alert(ruleType: DetectionRuleType, ruleName: String, sourceIp: String, ruleDescription: String, failedAttemptCount: int, username: String, date: MonthDay, time: LocalTime, eventDetails: String)
+  +equals(object: Object) boolean
+  +hashCode() int
+  +getSourceIp() String
+  +getUsername() String
+  +getDate() MonthDay
+  +getTime() LocalTime
+  +getRuleType() DetectionRuleType
+  +getRuleName() String
+  +getRuleDescription() String
+  +getFailedAttemptCount() int
+  +getEventDetails() String
+}
 
-    %% DETECTION AND INHERITANCE
-    class DetectionRule {
-        <<interface>>
-        +getName() String
-        +evaluate(events: List~LogEvent~, config: AppConfig) List~Alert~
-    }
+class LogEntry {
+  -EventType eventType
+  -String sourceIp
+  -String username
+  -MonthDay date
+  -LocalTime time
+  -String eventDetails
+  +LogEntry(eventType: EventType, sourceIp: String, username: String, date: MonthDay, time: LocalTime, eventDetails: String)
+  +getEventType() EventType
+  +getSourceIp() String
+  +getUsername() String
+  +getDate() MonthDay
+  +getTime() LocalTime
+  +getEventDetails() String
+}
 
-    class AbstractDetectionRule {
-        <<abstract>>
-        #validateConfiguration(config: AppConfig) void
-        #createAlert(name: String, ip: String, evidence: List~LogEvent~) Alert
-    }
+class ParseResult {
+  -List~LogEntry~ logEntries
+  -List~String~ malformedEntries
+  -List~String~ unrecognisedEntries
+  -List~String~ otherSSHEntries
+  +ParseResult(logEntries: List~LogEntry~, malformedEntries: List~String~, unrecognisedEntries: List~String~, otherSSHEntries: List~String~)
+  +getLogEntries() List~LogEntry~
+  +getMalformedEntries() List~String~
+  +getUnrecognisedEntries() List~String~
+  +getOtherSSHEntries() List~String~
+}
 
-    class RepeatedFailureRule {
-        +getName() String
-        +evaluate(events: List~LogEvent~, config: AppConfig) List~Alert~
-    }
+class LogParser {
+  -isSshLogEntry(logEntry: String) boolean
+  +parseLogFile(logFilePath: Path) ParseResult
+  +determineEventType(logEntry: String) EventType
+  -extractSourceIp(logEntry: String) String
+  -extractDate(logEntry: String) MonthDay
+  -extractTime(logEntry: String) LocalTime
+  -extractUsername(logEntry: String) String
+  -extractAuthenticationMethod(logEntry: String) String
+  -extractSourcePort(logEntry: String) String
+  -extractSshProtocol(logEntry: String) String
+  -eventDetails(logEntry: String) String
+}
 
-    class SuccessAfterFailuresRule {
-        +getName() String
-        +evaluate(events: List~LogEvent~, config: AppConfig) List~Alert~
-    }
+class CliAlertFormatter {
+  -String RED
+  -String RESET
+  +formatAlert(alert: Alert) String
+}
 
-    class DetectionEngine {
-        -rules: List~DetectionRule~
-        +addRule(rule: DetectionRule) void
-        +analyse(events: List~LogEvent~, config: AppConfig) List~Alert~
-    }
+class PdfAlertFormatter {
+  +formatPdf(alerts: List~Alert~, pathToDirectory: Path) void
+}
 
-    class Alert {
-        -ruleName: String
-        -sourceIp: String
-        -description: String
-        -evidence: List~LogEvent~
-        +getRuleName() String
-        +getSourceIp() String
-        +getDescription() String
-        +getEvidence() List~LogEvent~
-    }
+Main ..> CommandHandler : starts
 
-    DetectionRule <|.. AbstractDetectionRule : implements
-    AbstractDetectionRule <|-- RepeatedFailureRule : inherits
-    AbstractDetectionRule <|-- SuccessAfterFailuresRule : inherits
+CommandHandler *-- CommandAnalysis
+CommandHandler *-- CommandAlerts
+CommandHandler *-- CommandReport
+CommandHandler *-- CommandConfig
+CommandHandler *-- CommandSummary
+CommandAnalysis *-- CommandConfig
+CommandAnalysis *-- CommandSummary
+CommandAnalysis ..> CommandAlerts
+CommandConfig *-- DetectionConfig
+CommandReport *-- CommandAlerts
+CommandSummary *-- CommandAlerts
+CommandSummary ..> ParseResult
+CommandAlerts o-- Alert
 
-    CommandHandler --> DetectionEngine : requests analysis
-    DetectionEngine o-- DetectionRule : manages rules
-    DetectionEngine ..> AppConfig : uses settings
-    DetectionRule ..> Alert : produces
-    Alert "1" o-- "0..*" LogEvent : references evidence
+DetectionEngine o-- DetectionRule
+DetectionEngine *-- DetectionConfig
+RepeatedFailureRule --|> DetectionRule
+SuccessAfterRepeatedFailureRule --|> DetectionRule
+RepeatedFailureRule *-- DetectionConfig
+SuccessAfterRepeatedFailureRule *-- DetectionConfig
+DetectionRule ..> LogEntry
+DetectionRule ..> Alert
 
-    %% ANALYSIS RESULT AND REPORTING
-    class AnalysisResult {
-        -inputFile: Path
-        -analysedAt: LocalDateTime
-        -processedEvents: int
-        -malformedEntries: int
-        -unrecognisedEntries: int
-        -alerts: List~Alert~
-        -configUsed: AppConfig
-        +getAlerts() List~Alert~
-        +getConfigUsed() AppConfig
-    }
-
-    class ReportWriter {
-        +writeReport(output: Path, result: AnalysisResult) void
-    }
-
-    CommandHandler --> AnalysisResult : stores latest result
-    CommandHandler --> ReportWriter : requests PDF
-    AnalysisResult "1" *-- "0..*" Alert : contains
-    AnalysisResult --> AppConfig : snapshots settings used
-    ReportWriter ..> AnalysisResult : reads
+LogParser ..> ParseResult
+ParseResult o-- LogEntry
+CliAlertFormatter ..> Alert
+PdfAlertFormatter ..> Alert
 ```
+Test classes
+The test classes are shown separately so the application architecture remains clear. These are test dependencies, not production components.
+```mermaid
+classDiagram
+direction TB
 
+class CommandAlertsTest {
+  -CommandAlerts commandAlerts
+  -Alert alert
+  -Alert secondAlert
+  -Alert duplicateAlert
+  -ByteArrayOutputStream outputStream
+  -PrintStream originalOut
+  +setUp() void
+  +tearDown() void
+  +addNewAlert() void
+  +addDuplicateAlert() void
+  +displayAlerts() void
+  +displayEmptyAlerts() void
+  +handleAlerts() void
+  +handleEmptyAlerts() void
+}
 
-## Class Diagram Explanation
+class CommandAnalysisTest {
+  -ByteArrayOutputStream outputStream
+  -CommandAnalysis commandAnalysis
+  -Scanner scanner
+  -CommandAlerts commandAlerts
+  -PrintStream originalOut
+  -CommandConfig commandConfig
+  -CommandSummary commandSummary
+  +setUp() void
+  +tearDown() void
+  +testHandleAnalysisWithMismatchedQuotes() void
+  +testHandleAnalysisWithValidPath() void
+  +testHandleAnalysisWithQuotes() void
+  +testHandleAnalysisWithNonRegularFile() void
+  +testHandleAnalysisWithNonExistentFile() void
+  +testHandleAnalysisWithUnreadableFile() void
+}
 
-### Overview
+class CommandConfigTest {
+  -CommandConfig commandConfig
+  -ByteArrayOutputStream outputStream
+  -PrintStream originalOut
+  +setUp() void
+  +tearDown() void
+  +testHandleConfigWithViewConfig() void
+  +testHandleConfigWithInvalidCommand() void
+  +testUpdateIpConfigWithValidInput() void
+  +testUpdateTimeConfigWithValidInput() void
+  +testUpdateIpConfigWithEmptyInput() void
+  +testUpdateTimeConfigWithEmptyInput() void
+  +testUpdateIpConfigWithNonNumericInput() void
+  +testUpdateTimeConfigWithNonNumericInput() void
+  +testUpdateIpConfigWithZeroInput() void
+  +testUpdateTimeConfigWithZeroInput() void
+  +testUpdateIpConfigWithNegativeInput() void
+  +testUpdateTimeConfigWithNegativeInput() void
+}
 
-The class diagram illustrates the structure of the Java Security Log Analyser and how its classes work together. Each class has a specific responsibility, separating user interaction, configuration management, log parsing, detection and report generation. This makes the system easier to maintain, test and extend.
+class CommandHandlerTest {
+  -ByteArrayOutputStream outputStream
+  -CommandHandler commandHandler
+  -PrintStream originalOut
+  -InputStream originalIn
+  +setUp() void
+  +tearDown() void
+  +testHelpCommand() void
+  +testExitCommand() void
+  +testVersionCommand() void
+  +testInvalidCommand() void
+  +testAnalyseCommand() void
+  +testAlertsCommandWhenAlertsExist() void
+  +testAlertsCommandWhenNoAlertsExist() void
+  +testReportCommand() void
+  +testConfigCommand() void
+  +testSummaryCommand() void
+  +testValidCapitalLettersCommand() void
+  +testInvalidCapitalLettersCommand() void
+}
 
-The `CommandHandler` coordinates user commands and communicates with the relevant components. The `CommandLineParser` interprets commands and their options, while `ConfigManager` loads and saves persistent settings. The `LogParser` converts supported authentication log entries into structured `LogEvent` objects. These events are passed to the `DetectionEngine`, which evaluates them using the available detection rules.
+class CommandReportTest {
+  -CommandAlerts commandAlerts
+  -CommandReport commandReport
+  -PrintStream originalOut
+  -ByteArrayOutputStream outputStream
+  -Alert alert
+  ~Path testDirectoryPath
+  +setUp() void
+  +tearDown() void
+  +testHandleReportWithValidPath() void
+  +testHandleReportWithQuotes() void
+  +testHandleReportWithPathContainingSpaces() void
+  +testHandleReportWithMismatchedQuotes() void
+  +testHandleReportWithEmptyPath() void
+  +testHandleReportWithNonexistentDirectory() void
+  +testHandleReportWithNoAlerts() void
+}
 
-When a rule identifies a pattern matching its criteria, it produces an `Alert`. The alerts, processing statistics and configuration used for the analysis are stored in an `AnalysisResult`. Finally, `ReportWriter` uses this result to generate a PDF report.
+class CommandSummaryTest {
+  -CommandAlerts commandAlerts
+  -CommandSummary commandSummary
+  -ParseResult parseResult
+  -ByteArrayOutputStream outputStream
+  -PrintStream originalOutput
+  -String eventDetails
+  +setUp() void
+  +tearDown() void
+  +testUpdateSummaryWithEntries() void
+  +testUpdateSummaryWithEmptyParseResult() void
+  +testHandleSummaryDisplaysSummary() void
+}
 
-### Object-Oriented Design
+class DetectionEngineTest {
+  -DetectionEngine detectionEngine
+  -DetectionConfig detectionConfig
+  -String eventDetails
+  +setUp() void
+  +testDetectionEngineInitialisesWithDefaultRules() void
+  +testDetectWithEmptyLogEntries() void
+  +testDetectWithNoMatchingRules() void
+  +testDetectWithRepeatedFailureRule() void
+  +testDetectWithSuccessAfterRepeatedFailureRule() void
+  +testDetectWithBothRules() void
+  +testDetectWithCustomConfig() void
+}
 
-The diagram demonstrates several object-oriented programming principles:
+class RepeatedFailureRuleTest {
+  -DetectionConfig detectionConfig
+  -RepeatedFailureRule repeatedFailureRule
+  -String eventDetails
+  +setUp() void
+  +testDetectRepeatedFailedLoginsAtThreshold() void
+  +testDetectRepeatedFailedLoginsBelowThreshold() void
+  +testDetectRepeatedFailedLoginsAboveThreshold() void
+  +testDetectRepeatedFailedLoginsOutsideTimeWindow() void
+  +testDetectRepeatedFailedLoginsFromDifferentIps() void
+  +testDetectRepeatedFailedLoginsWithDifferentUsernames() void
+  +testDetectRepeatedFailedLoginsWithSuccessfulLogin() void
+  +testDetectRepeatedFailedLoginsAcrossMidnight() void
+  +testDetectRepeatedFailedLoginsAcrossNewYear() void
+  +testDetectRepeatedFailedLoginsAtExactTimeWindowBoundary() void
+  +testDetectWithEmptyLogEntries() void
+}
 
-- **Encapsulation:** Classes manage their own data and expose appropriate methods to access or modify it. For example, `AppConfig` manages detection thresholds and validates configuration changes.
-- **Inheritance:** `RepeatedFailureRule` and `SuccessAfterFailuresRule` inherit shared functionality from `AbstractDetectionRule`, reducing code duplication while allowing each rule to implement its own detection logic.
-- **Abstraction:** `AbstractDetectionRule` provides a common foundation for detection rules, while the `DetectionRule` interface defines the operations that detection rules must support.
-- **Polymorphism:** The `DetectionEngine` can evaluate different detection rules through the same `DetectionRule` interface, without needing separate handling logic for each rule type.
+class SuccessAfterRepeatedFailureRuleTest {
+  -DetectionConfig detectionConfig
+  -SuccessAfterRepeatedFailureRule successAfterRepeatedFailureRule
+  -String eventDetails
+  +setUp() void
+  +testDetectSuccessfulLoginAtFailureThreshold() void
+  +testDetectSuccessfulLoginBelowFailureThreshold() void
+  +testDetectSuccessfulLoginAboveFailureThreshold() void
+  +testDetectSuccessfulLoginOutsideTimeWindow() void
+  +testDetectSuccessfulLoginFromDifferentIps() void
+  +testDetectSuccessfulLoginResetsFailureCounter() void
+  +testDetectMultipleSuccessfulLoginsAfterFailures() void
+  +testDetectSuccessfulLoginAcrossMidnight() void
+  +testDetectSuccessfulLoginAcrossNewYear() void
+  +testDetectSuccessfulLoginAtExactTimeWindowBoundary() void
+  +testDetectWithEmptyLogEntries() void
+}
 
-These principles support a modular design in which new detection rules can be introduced with minimal changes to the existing detection engine.
+class LogParserTest {
+  -LogParser logParser
+  -ParseResult parseResult
+  +setUp() void
+  +tearDown() void
+  +testParseLogFileWithValidSshLogEntry() void
+  +testParseLogFileWithEmptyLogFile() void
+  +testParseLogFileWithMalformedLogFile() void
+  +testParseLogFileWithUnrecognisedLogFile() void
+  +testParseLogFileWithOtherSSHLogFile() void
+  +testParseLogFileWithMixedLogFile() void
+  +testParseLogFileWithValidIpv4Address() void
+  +testParseLogFileWithLowerBoundaryIpv4Address() void
+  +testParseLogFileWithUpperBoundaryIpv4Address() void
+  +testParseLogFileWithTooFewOctetsIpv4Address() void
+  +testParseLogFileWithTooManyOctetsIpv4Address() void
+  +testParseLogFileWithNonNumericIpv4Address() void
+  +testParseLogFileWithOctetAbove255Ipv4Address() void
+  +testParseLogFileWithNegativeOctectIpv4Address() void
+  +testParseLogFileWithEmptyOctectIpv4Address() void
+  +testParseLogFileWithMissingIpv4Address() void
+  +testParseLogFileWithValidDate() void
+  +testParseLogFileWithLeapYearDate() void
+  +testParseLogFileWithInvalidDate() void
+  +testParseLogFileWithMissingDate() void
+  +testParseLogFileWithValidTime() void
+  +testParseLogFileWithMidnightTime() void
+  +testParseLogFileWithEndOfDayTime() void
+  +testParseLogFileWithHourAbove23() void
+  +testParseLogFileWithMinuteAbove59() void
+  +testParseLogFileWithSecondAbove59() void
+  +testParseLogFileWithMissingTime() void
+  +testParseLogFileWithValidUsername() void
+  +testParseLogFileWithAlphanumericUsername() void
+  +testParseLogFileWithRootUsername() void
+  +testParseLogFileWithMissingUsername() void
+  +testParseLogFileWithEmptyUsername() void
+  +testParseLogFileWithValidPasswordAuthenticationMethod() void
+  +testParseLogFileWithValidPublicKeyAuthenticationMethod() void
+  +testParseLogFileWithValidKeyboardInteractiveAuthenticationMethod() void
+  +testParseLogFileWithMissingAuthenticationMethod() void
+  +testParseLogFileWithMissingForKeyword() void
+  +testParseLogFileWithMissingAuthenticationResult() void
+  +testParseLogFileWithBlankAuthenticationMethod() void
+  +testParseLogFileWithValidSourcePort() void
+  +testParseLogFileWithLowerBoundSourcePort() void
+  +testParseLogFileWithUpperBoundSourcePort() void
+  +testParseLogFileWithNegativeSourcePort() void
+  +testParseLogFileWithSourcePortAboveMaximum() void
+  +testParseLogFileWithNonNumericSourcePort() void
+  +testParseLogFileWithAlphanumericSourcePort() void
+  +testParseLogFileWithDecimalSourcePort() void
+  +testParseLogFileWithMissingSourcePort() void
+  +testParseLogFileWithEmptySourcePort() void
+  +testParseLogFileWithSsh2Protocol() void
+  +testParseLogFileWithSsh1Protocol() void
+  +testParseLogFileWithSsh3Protocol() void
+  +testParseLogFileWithUnrecognisedSshProtocol() void
+  +testParseLogFileWithMissingSshProtocol() void
+  +testParseLogFileWithEmptySshProtocol() void
+  +testParseLogFileWithSuccessfulLoginEvent() void
+  +testParseLogFileWithFailedLoginEvent() void
+  +testParseLogFileWithUnrecognisedEventType() void
+}
 
-### Diagram Symbols and Relationships
-
-The symbols and lines in the class diagram describe how classes relate to one another and how many objects can participate in each relationship.
-
-| Symbol | Meaning | Example in the project |
-|---|---|---|
-| Dashed line with a hollow triangle | **Interface implementation:** a class provides the behaviour required by an interface. | `AbstractDetectionRule` implements `DetectionRule`. |
-| Solid line with a hollow triangle | **Inheritance:** a subclass inherits accessible properties and methods from a parent class. | `RepeatedFailureRule` extends `AbstractDetectionRule`. |
-| Filled diamond | **Composition:** a strong ownership relationship in which the whole controls the lifecycle of its parts. | Could represent `CommandHandler` owning its `CommandLineParser`, if implemented this way. |
-| Hollow diamond | **Aggregation:** a relationship in which an object groups other objects that can exist independently. | Could represent `DetectionEngine` managing independently created detection rules. |
-| Dashed arrow | **Dependency:** one class uses another to perform a task, without necessarily owning it or maintaining a permanent reference. | `ReportWriter` uses `AnalysisResult` to generate a PDF report. |
-| `1` | Exactly one related object. | Each `LogEvent` has one event type in the proposed model. |
-| `0..1` | Zero or one related object. | An optional relationship. |
-| `0..*` | Zero or more related objects. | An `AnalysisResult` can contain zero or more alerts. |
-| `1..*` | One or more related objects. | A collection that must contain at least one object. |
-
-Multiplicity values are written beside the ends of relationship lines to indicate how many objects may participate in a relationship. For example, `AnalysisResult "1" *-- "0..*" Alert` indicates that one analysis result can contain zero or more alerts. This allows the system to represent log files that produce no alerts as well as those that produce multiple alerts.
-
-### Design Considerations
-
-The class diagram represents the intended structure of the application and should be checked against the final source code. In particular, composition and aggregation should only be used where the actual object ownership and lifecycle justify them. Similarly, inheritance and interface implementation should reflect the relationships used in the Java classes.
-
-Overall, the design aims to separate responsibilities, reuse common functionality and make the application easier to test and maintain. It also allows additional detection rules to be introduced without unnecessarily changing the existing components.
+CommandAlertsTest ..> CommandAlerts
+CommandAlertsTest ..> Alert
+CommandAnalysisTest ..> CommandAnalysis
+CommandAnalysisTest ..> CommandAlerts
+CommandAnalysisTest ..> CommandConfig
+CommandAnalysisTest ..> CommandSummary
+CommandConfigTest ..> CommandConfig
+CommandHandlerTest ..> CommandHandler
+CommandReportTest ..> CommandAlerts
+CommandReportTest ..> CommandReport
+CommandReportTest ..> Alert
+CommandSummaryTest ..> CommandAlerts
+CommandSummaryTest ..> CommandSummary
+CommandSummaryTest ..> ParseResult
+DetectionEngineTest ..> DetectionEngine
+DetectionEngineTest ..> DetectionConfig
+RepeatedFailureRuleTest ..> DetectionConfig
+RepeatedFailureRuleTest ..> RepeatedFailureRule
+SuccessAfterRepeatedFailureRuleTest ..> DetectionConfig
+SuccessAfterRepeatedFailureRuleTest ..> SuccessAfterRepeatedFailureRule
+LogParserTest ..> LogParser
+LogParserTest ..> ParseResult
+```
+Notes
+`+` means public, `-` means private, `#` means protected and `~` means package-private.
+Inheritance is shown with a generalisation arrow; associations, dependencies, aggregation and composition use their corresponding UML relationship arrows.
+The diagram reflects the UML Generator output supplied for this conversion. Review it against the current source code before treating it as the definitive design.
