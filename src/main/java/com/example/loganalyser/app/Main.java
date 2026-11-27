@@ -4,7 +4,7 @@ package com.example.loganalyser.app;
 // import the CommandHandler class from the cli package to handle command line interface operations
 import com.example.loganalyser.cli.CommandHandler;
 
-
+// The main class is used to start the application. This is to seperate responsiblities from other classes and functionality.
 public class Main {
     public static void main(String[] args) {
         

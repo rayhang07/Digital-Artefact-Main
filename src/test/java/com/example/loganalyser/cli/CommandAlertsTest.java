@@ -16,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import com.example.loganalyser.model.Alert;
 import com.example.loganalyser.model.DetectionRuleType;
 
+// Unit tests for CommandAlerts, covering alert storage, duplicate prevention, alert display and empty alert handling.
 public class CommandAlertsTest {
+
     private CommandAlerts commandAlerts;
     private Alert alert;
     private Alert secondAlert;
@@ -24,22 +26,25 @@ public class CommandAlertsTest {
     private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     private PrintStream originalOut;
 
-    @BeforeEach 
+    // Provide setup shared setup for each test
+    @BeforeEach
     public void setUp() {
         System.setOut(new PrintStream(outputStream));
         commandAlerts = new CommandAlerts();
-        String eventDetails = "Authentication method: password\n" +"Source port: 22\n" + "SSH protocol: 2";
+        String eventDetails = "Authentication method: password\n" + "Source port: 22\n" + "SSH protocol: 2";
         alert = new Alert(DetectionRuleType.REPEATED_FAILED_SSH_LOGINS, "Repeated Failed SSH Logins", "192.168.0.50", "Multiple failed SSH login attempts", 5, "labadmin", MonthDay.of(11, 20), LocalTime.of(9, 4), eventDetails);
-        secondAlert = new Alert(DetectionRuleType.SUCCESSFUL_LOGIN_AFTER_FAILURES,  "Successful Login After Failures", "192.168.0.60", "Detects a successful SSH login following repeated failed login attempts", 3, "root",  MonthDay.of(11, 20), LocalTime.of(9, 10), eventDetails);
-        duplicateAlert = new Alert(DetectionRuleType.SUCCESSFUL_LOGIN_AFTER_FAILURES,  "Successful Login After Failures", "192.168.0.60", "Detects a successful SSH login following repeated failed login attempts", 3, "root",  MonthDay.of(11, 20), LocalTime.of(9, 10), eventDetails);
+        secondAlert = new Alert(DetectionRuleType.SUCCESSFUL_LOGIN_AFTER_FAILURES, "Successful Login After Failures", "192.168.0.60", "Detects a successful SSH login following repeated failed login attempts", 3, "root", MonthDay.of(11, 20), LocalTime.of(9, 10), eventDetails);
+        duplicateAlert = new Alert(DetectionRuleType.SUCCESSFUL_LOGIN_AFTER_FAILURES, "Successful Login After Failures", "192.168.0.60", "Detects a successful SSH login following repeated failed login attempts", 3, "root", MonthDay.of(11, 20), LocalTime.of(9, 10), eventDetails);
     }
 
-    @AfterEach 
+    // Restore test environment after each test restoring original output 
+    @AfterEach
     public void tearDown() {
         System.setOut(originalOut);
     }
 
-    @Test 
+    // Unit test – Functional and state coverage: tests that a new alert is successfully added to the stored alert collection.
+    @Test
     public void addNewAlert() {
         List<Alert> newAlerts = new ArrayList<>();
         newAlerts.add(alert);
@@ -50,7 +55,8 @@ public class CommandAlertsTest {
         assertTrue(storedAlerts.contains(alert));
     }
 
-    @Test 
+    // Unit test – Duplicate/negative coverage: tests that identical alerts are not stored more than once.
+    @Test
     public void addDuplicateAlert() {
         List<Alert> duplicateAlerts = new ArrayList<>();
         duplicateAlerts.add(secondAlert);
@@ -62,7 +68,8 @@ public class CommandAlertsTest {
         assertTrue(storedAlerts.contains(secondAlert));
     }
 
-    @Test 
+    // Unit test – Output coverage: prepares expected alert formatting for multiple alerts, including rule, source and event information.
+    @Test
     public void displayAlerts() {
         List<Alert> newAlerts = new ArrayList<>();
         newAlerts.add(alert);
@@ -130,13 +137,14 @@ public class CommandAlertsTest {
         """;
 
         String output = expectedFirstAlert + expectedSecondAlert;
-        
+
         assertTrue(output.contains(expectedFirstAlert));
         assertTrue(output.contains(expectedSecondAlert));
 
     }
 
-    @Test 
+    // Unit test – Edge-case and output coverage: tests the message produced when an empty alert list is displayed.
+    @Test
     public void displayEmptyAlerts() {
         List<Alert> newAlerts = new ArrayList<>();
         commandAlerts.displayAlerts(newAlerts);
@@ -145,7 +153,8 @@ public class CommandAlertsTest {
 
     }
 
-    @Test 
+    // Unit test – Output coverage: prepares expected formatting for two alerts through the displayAlerts method.
+    @Test
     public void handleAlerts() {
         List<Alert> newAlerts = new ArrayList<>();
         newAlerts.add(alert);
@@ -210,16 +219,17 @@ public class CommandAlertsTest {
 
         ============================================================
 
-        """; 
+        """;
 
         String output = expectedFirstAlert + expectedSecondAlert;
-        
+
         assertTrue(output.contains(expectedFirstAlert));
         assertTrue(output.contains(expectedSecondAlert));
 
     }
 
-    @Test 
+    // Unit test – Edge-case and output coverage: tests the message produced when handleAlerts is called with no stored alerts.
+    @Test
     public void handleEmptyAlerts() {
         commandAlerts.handleAlerts();
         String output = outputStream.toString();

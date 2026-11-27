@@ -28,6 +28,7 @@ public class DetectionConfig {
         return ipFailureThreshold;
     }
 
+    // getter to return the time failure threshold
     public int getTimeFailureThreshold () {
         return timeFailureThreshold;
     }

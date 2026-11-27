@@ -11,7 +11,7 @@ The rules are intended to support further investigation. They do not independent
 
 ### 2.1 Configuration File
 
-Detection thresholds and time windows shall be read from a persistent `config.properties` file. Users should be able to change the settings without editing or recompiling the Java source code.
+Detection thresholds and time windows shall be read from a config. Users should be able to change the settings without editing or recompiling the Java source code.
 
 Initial example:
 
@@ -30,7 +30,7 @@ The values shown are initial defaults. Users may change them to suit their analy
 ### 2.2 Validation and Defaults
 
 - Thresholds and time windows must be positive integers.
-- Missing configuration files and missing or invalid settings must be handled using a documented policy.
+- Missing configuration files and missing or invalid settings must be handled correctly.
 - The application must not silently accept zero, negative or non-numeric values.
 - The effective configuration should be visible to the user through the use of commands and included in the PDF report where practical.
 - Configuration loading and validation should be implemented separately from the detection rules.
@@ -52,7 +52,7 @@ Identify repeated failed SSH authentication attempts originating from the same s
 | Threshold | 5 or more failures |
 | Time window | 5 minutes |
 
-Both the threshold and time window are configurable in `config.properties`.
+Both the threshold and time window are configurable in config
 
 ### 3.3 Detection Logic
 

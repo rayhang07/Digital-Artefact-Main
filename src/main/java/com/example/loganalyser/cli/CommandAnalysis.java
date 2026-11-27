@@ -13,23 +13,28 @@ import com.example.loganalyser.model.ParseResult;
 import com.example.loganalyser.parser.LogParser;
 public class CommandAnalysis {
     
+    // ANSI escape code to set the colour of cli text. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
     private static final String GREEN = "\u001B[32m";
-    
+
+    // ANSI escape code to set the colour of cli text. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
     private static final String RED = "\u001B[31m";
-    // ANSI escape code to reset the color back to default. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
+
+    // ANSI escape code to reset the colour back to default. It is justified to store as a constant over a variable because these values are fixed and do not change during the execution of the program. Using constants improves code readability and maintainability, as it clearly indicates that these values are intended to be constant and should not be modified. It is also needed to ensure that the user interface returns to the default colour displaying coloured text, preventing the entire console output from being affected by the colour formatting.
     private static final String RESET = "\u001B[0m";
-    // Method to handle the analysis command, this will be called from the runCli method in the CommandHandler class. This is justified as it allows for a modular and organized approach to handling user commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as the command handling logic is separated from the main method.
     
+
+    // private fields to store config and summary
     private final CommandConfig commandConfig;
     private final CommandSummary commandSummary;
 
 
+    // constructor to set the config and summary fields to be able to utilise the current config and update the existing summary stats after analysis occurs
     public CommandAnalysis(CommandConfig commandConfig, CommandSummary commandSummary) {
         this.commandConfig = commandConfig;
         this.commandSummary = commandSummary;
     }
 
-    // Method to handle the analysis command
+    // Method to handle the analysis command, this will be called from the runCli method in the CommandHandler class. This is justified as it allows for a modular and organized approach to handling user commands, making it easier to add or modify commands in the future. It also improves code readability and maintainability, as the command handling logic is separated from the main method.
     public void handleAnalysis(Scanner cliScanner, CommandAlerts commandAlerts) {
         System.out.println();
         System.out.println("Please enter the path to the log file you want to analyse:");
@@ -46,22 +51,30 @@ public class CommandAnalysis {
         Path logPath = Path.of(logFilePath.replace("\"", ""));
         LogParser logParser = new LogParser();
         ParseResult parseResult;
+
+        // uses try to attempt parsing and also calls update summary so that the cumulative stats can be built up from each analysis
         try {
             parseResult = logParser.parseLogFile(logPath);
             commandSummary.updateSummary(parseResult);
 
         } 
+
+        // catches exceptions to ensure graceful handling of errors during parsing
         catch (Exception e) {
             System.out.println("Error analysing log file " + e.getMessage());
             return;
         }
 
+        // use the getter to retrieve the current detection configuration thresholds to see whether rules are triggered
         DetectionConfig detectionConfig = commandConfig.getDetectionConfig();
 
+        // instantiate the engine passing the current config
         DetectionEngine detectionEngine = new DetectionEngine(detectionConfig);
+
         // Using the detect method, create a list of any alerts and then add it to the list of all alerts
         List<Alert> alerts = detectionEngine.detect(parseResult.getLogEntries());
         commandAlerts.addAlerts(alerts);
+
         // Run the complete method to display the outcomes and then display the relevant alerts for this specific analysis
         analysisComplete(parseResult.getLogEntries().size(), parseResult.getMalformedEntries().size(), parseResult.getUnrecognisedEntries().size(), parseResult.getOtherSSHEntries().size(), alerts);
         commandAlerts.displayAlerts(alerts);

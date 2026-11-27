@@ -17,10 +17,7 @@ public class ParseResult {
     public ParseResult(List<LogEntry> logEntries, List<String> malformedEntries, List<String> unrecognisedEntries, List<String> otherSSHEntries) {
         
         // Validate the input parameters to ensure that they are not null or negative, and throw an IllegalArgumentException if they are. This is justified as it ensures that there is robust input validation and error handling in place, which is needed to prevent invalid data from being processed and to maintain the integrity of the parse result data.
-        if (logEntries == null) {
-            throw new IllegalArgumentException("Log entries list cannot be null");
-        }
-        if (malformedEntries == null || unrecognisedEntries == null || otherSSHEntries == null) {
+        if (logEntries == null || malformedEntries == null || unrecognisedEntries == null || otherSSHEntries == null) {
             throw new IllegalArgumentException("Entry lists cannot be null");
         }
 
